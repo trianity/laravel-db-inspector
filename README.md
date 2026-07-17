@@ -1,308 +1,128 @@
-# Laravel DB Inspector - Database Schema Analysis & Insights
+# Laravel DB Inspector
 
-[![Latest Version](https://img.shields.io/packagist/v/trianity/laravel-db-inspector.svg?style=flat-square)](https://packagist.org/packages/trianity/laravel-db-inspector)
-[![Tests](https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square)]()
-[![Total Downloads](https://img.shields.io/packagist/dt/trianity/laravel-db-inspector.svg?style=flat-square)](https://packagist.org/packages/trianity/laravel-db-inspector)
-[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
-[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.1-blue?style=flat-square)]()
-[![Laravel](https://img.shields.io/badge/laravel-9%20to%2013-red?style=flat-square)]()
+A development-focused database schema and design inspection tool for Laravel. It analyzes the actual database structure, is production-safe by default, and keeps the web interface disabled unless you explicitly enable it.
 
-The **Laravel DB Inspector** package provides detailed analysis and insights into your database schema for Laravel applications. It helps identify structural issues, missing indexes, normalization problems, nullable column risks, foreign key inconsistencies, and performance concerns.
+> This package is under active development and has not yet reached a stable release.
 
-It is an essential tool for **debugging, optimizing, reviewing, and maintaining a healthy database architecture** in Laravel projects.
+## Status
 
-Current baseline: redesigned package foundation with **MySQL and PostgreSQL** support.
+The package is currently under active redesign and has not reached its first stable release.
 
----
+## Requirements
 
-## **Important Notice: Configure Database Before Using This Package**  
+- PHP `^8.3`
+- Laravel / Illuminate `^13.0`
+- MySQL and MariaDB-compatible connections
+- PostgreSQL
 
-Before using this package, ensure your database connection is properly configured in your Laravel application.
+SQLite appears in the test bootstrap only and does not imply analyzer support.
 
-If the database is not configured correctly, Laravel DB Inspector will not be able to analyze your schema.
+## Installation
 
-Make sure your `.env` file contains valid database credentials.
-
----
-
-## **Security Warning**
-
-This package exposes detailed database schema analysis.  
-It is intended for **admin and development use only**.
-
-Do **NOT** expose this tool publicly in production without proper access restrictions, as schema details may reveal sensitive structural information.
-
----
-
-<p>  
-<a href="https://packagist.org/search/?tags=laravel" target="_blank" rel="noopener noreferrer">#Laravel</a>&nbsp;  
-<a href="https://packagist.org/search/?tags=database" target="_blank" rel="noopener noreferrer">#Database</a>&nbsp;  
-<a href="https://packagist.org/search/?tags=schema" target="_blank" rel="noopener noreferrer">#Schema</a>&nbsp;  
-<a href="https://packagist.org/search/?tags=php" target="_blank" rel="noopener noreferrer">#PHP</a>&nbsp;  
-<a href="https://packagist.org/search/?tags=performance" target="_blank" rel="noopener noreferrer">#Performance</a>&nbsp;  
-<a href="https://packagist.org/search/?tags=optimization" target="_blank" rel="noopener noreferrer">#Optimization</a>&nbsp;  
-<a href="https://packagist.org/search/?tags=analysis" target="_blank" rel="noopener noreferrer">#Analysis</a>  
-</p>  
-
----
-
-## Documentation  
-
-- [Features](#features)  
-- [Supported Versions](#supported-versions)  
-- [Installation](#installation)  
-- [Commands](#commands)  
-    - [Vendor Publish](#vendor-publish)  
-    - [Run Analysis for Production](#run-analysis-for-production)  
-- [Output Categories](#output-categories)  
-- [Environment Configuration](#environment-configuration)  
-- [FAQs](#faqs)  
-- [Contributing](#contributing)  
-- [Security Vulnerabilities](#security-vulnerabilities)  
-- [License](#license)
-
----
-
-## Video
-
-- https://www.youtube.com/watch?v=Xv5m10R3wmc
-
----
-
-## **Features**
-
-- Analyze full database schema structure
-- Detect missing indexes on foreign keys and log tables
-- Identify nullable column overuse and high NULL value ratios
-- Detect normalization and integrity issues (duplicate rows, orphan risks, improper foreign key naming)
-- Audit trail checks (created_by, updated_by, deleted_by columns)
-- Detect repeated common fields across tables
-- Identify tables with too many columns or wide VARCHARs
-- Detect tables missing a PRIMARY KEY
-- Highlight performance risks (large TEXT columns, JSON overuse, unbounded growth, table size)
-- Detect storage engine issues (non-InnoDB tables and mixed engines)
-- Detect charset/collation mismatches (utf8 vs utf8mb4 and inconsistent collations)
-- Analyze auto-increment overflow risk on high-growth tables
-- Identify low-cardinality indexes that may be ineffective
-- Recommend composite indexes for common filtering patterns (e.g., user_id + status)
-- Analyze overall database size and table storage dominance
-- Detect improper pivot table structures
-- Identify enum and boolean overuse
-- Detect mixed domain columns (e.g., info/data/details in varchar)
-- Check for missing soft deletes and timestamps
-- Detect datatype mismatch using column-name heuristics (price/amount, email, *_at, is_/has_)
-- Detect status columns missing indexes
-- Detect polymorphic relation overuse and missing indexes
-- Lightweight and optimized for fast schema scanning
-- Supports MySQL and PostgreSQL database drivers
-- Supports Laravel 9, 10, 11, 12, and 13 with PHP 8.1+ compatibility
-- CLI-based analysis with structured categorized output
-
----
-
-## **Supported Versions**
-
-- **PHP:** ^8.1 | ^8.2 | ^8.3 | ^8.4 | ^8.5  
-- **Illuminate Support:** ^9.0 | ^10.0 | ^11.0 | ^12.0 | ^13.0  
-- **Database:** MySQL (5.7+ / 8.0+ recommended), PostgreSQL
-
----
-
-## **Installation**
-
-To install the package, run:
+Install it as a development dependency:
 
 ```bash
-composer require trianity/laravel-db-inspector
+composer require --dev trianity/laravel-db-inspector
 ```
 
-<button type="button" onclick="navigator.clipboard.writeText('composer require trianity/laravel-db-inspector')">Copy Install Command</button>
-
----
-
-## **Commands**
-
-### **Vendor Publish**
-
-After installing the package, you may publish the configuration file using:
+For production deployments, use the usual no-dev install:
 
 ```bash
-php artisan vendor:publish --tag=laravel-db-inspector-config
+composer install --no-dev
 ```
 
-<button type="button" onclick="navigator.clipboard.writeText('php artisan vendor:publish --tag=laravel-db-inspector-config')">Copy Vendor Publish Command</button>
+## Usage
 
-This will create the configuration file at:
-
-```bash
-config/laravel-db-inspector.php
-```
-
-You can customize thresholds like:
-
-- Maximum columns per table
-- Maximum VARCHAR length
-- JSON column limits
-- Large table size threshold
-- Total database size threshold
-- Unusually large table ratio threshold
-- Table dominance ratio threshold
-- Nullable ratio threshold
-- Auto-increment risk thresholds
-- Index cardinality thresholds
-
----
-
-### **Run Analysis for Production**
-
-To analyze your database schema:
+Run the Artisan command:
 
 ```bash
 php artisan db-inspector:analyze
 ```
 
-or
+The command prints an analysis context and then grouped findings. If no tables are discovered or a preflight check fails, the command exits with a non-zero status.
+
+## Configuration
+
+Publish the configuration file with:
 
 ```bash
-http://127.0.0.1:8000/db-inspector
+php artisan vendor:publish --tag=laravel-db-inspector-config
 ```
 
-Both options scan your entire database and display categorized results in the browser or terminal.
+Available environment variables:
 
----
+- `DB_INSPECTOR_ENABLED`
+- `DB_INSPECTOR_CONNECTION`
+- `DB_INSPECTOR_WEB_ENABLED`
+- `DB_INSPECTOR_WEB_PREFIX`
 
-## **Output Categories**
+The default configuration lives in `config/laravel-db-inspector.php`, and the web route is only loaded when both the package and the web mode are explicitly enabled.
 
-Laravel DB Inspector organizes its findings into four main categories:
+## Web interface
 
-### 1. **Structure Issues**
-- Tables with too many columns
-- Wide VARCHAR fields
-- Missing timestamps or soft deletes
-- Boolean and enum overuse
-- Nullable column overuse
-- Large TEXT columns
-- Data type appropriateness
-- Missing primary key detection
-- Mixed domain columns
-- Repeated common fields across tables
-- Pivot table structure issues
+The web interface is disabled by default.
 
-### 2. **Integrity Issues**
-- Duplicate rows detection
-- Foreign key naming inconsistencies
-- Cascading action problems
-- Possible orphan risks
-- Unique constraint violations
+```php
+return [
+    'enabled' => env('DB_INSPECTOR_ENABLED', app()->environment(['local', 'testing'])),
+    'web' => [
+        'enabled' => env('DB_INSPECTOR_WEB_ENABLED', false),
+        'prefix' => env('DB_INSPECTOR_WEB_PREFIX', 'db-inspector'),
+        'middleware' => ['web'],
+    ],
+];
+```
 
-### 3. **Performance Issues**
-- Missing indexes on foreign keys
-- Missing indexes on log tables
-- Missing indexes on status columns
-- High NULL value ratios
-- Table size analysis
-- Database size threshold analysis
-- Unusually large table and table-dominance detection
-- Auto-increment overflow and growth risk analysis
-- Low-cardinality/useless index detection
-- High-cardinality index misuse heuristics (standalone status/flag indexes)
-- Composite index recommendations (user_id + status/state)
-- Unbounded growth risks
+Important points:
 
-### 4. **Architecture Issues**
-- Audit trail implementation (created_by, updated_by, deleted_by)
-- JSON column overuse
-- Polymorphic relation overuse
-- Storage engine consistency (InnoDB and mixed-engine detection)
-- Charset and collation consistency checks
+- the route is registered only after explicit opt-in;
+- middleware protection is the host application's responsibility;
+- the package does not automatically choose an auth guard;
+- public access is not recommended in production;
+- the output may reveal sensitive database schema information.
 
----
+## Supported databases
 
-## **Environment Configuration**
+- MySQL
+- MariaDB
+- PostgreSQL
 
-Ensure your `.env` file contains:
+## What it checks
+
+The analyzer currently focuses on these areas:
+
+- Architecture: audit trail, charset/collation consistency, JSON overuse, storage engine inconsistencies, boolean flag overuse
+- Integrity: duplicate row risk, foreign key naming consistency, cascade actions, orphan risk, unique constraint issues
+- Performance: missing indexes, log table indexing, status indexes, NULL ratio, table and database size, auto-increment risk, index cardinality, composite index recommendations, growth risk
+- Structure: data type appropriateness, enum overuse, large text columns, missing soft deletes or timestamps, mixed domain columns, nullable overuse, pivot structure, polymorphic overuse, missing primary keys, repeated common fields, too many columns, wide varchar fields
+
+## Development
+
+Useful commands:
 
 ```bash
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=your_database
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
+composer test
+composer test:unit
+composer test:feature
+composer analyse
+composer format
+composer format:test
 ```
 
-For PostgreSQL, use:
+The package uses a Testbench workbench environment for bootstrap and package-level verification.
 
-```bash
-DB_CONNECTION=pgsql
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_DATABASE=your_database
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
-```
+## Security
 
-After updating configuration:
+See [SECURITY.md](./SECURITY.md).
 
-```bash
-php artisan config:clear
-```
+## Attribution
 
----
+This package is derived from the DBStan project:
 
-## **FAQs**
+- https://github.com/dhanikk/dbstan
 
-### 1. What does this package do?
+The project started from an MIT-licensed base, but it is now independently maintained and significantly redesigned. There is no official relationship with, or endorsement from, the original authors.
 
-Laravel DB Inspector analyzes your Laravel database schema and detects structural, normalization, and performance issues.
+## License
 
----
-
-### 2. Does it modify my database?
-
-No. Laravel DB Inspector is completely read-only.
-It does **NOT** make any changes to your database.
-
----
-
-### 3. Is it safe for production?
-
-Yes, but it is recommended to use it in development or staging environments.  
-Avoid exposing schema analysis publicly.
-
----
-
-## **Contributing**
-
-Contributions are welcome!  
-
-If you'd like to contribute:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/your-feature`)
-3. Commit your changes (`git commit -am 'Add new feature'`)
-4. Push to the branch (`git push origin feature/your-feature`)
-5. Open a Pull Request
-
-Please ensure:
-- Your code follows PSR-12 coding standards
-- All tests pass before submitting
-- You include tests for new features
-
-For major changes, please open an issue first to discuss what you would like to change.
-
----
-
-## **Security Vulnerabilities**
-
-If you discover a security vulnerability within Laravel DB Inspector, please send an email to [enquiry@itpathsolutions.com](mailto:enquiry@itpathsolutions.com).
-
-All security vulnerabilities will be promptly addressed.
-
-For more details, see our [Security Policy](SECURITY.md).
-
----
-
-## **License**
-
-Laravel DB Inspector is open-sourced software licensed under the [MIT license](LICENSE).
+MIT License. See [LICENSE](./LICENSE).

@@ -1,19 +1,46 @@
 # Security Policy
 
-## Reporting a Vulnerability  
+## Supported versions
 
-We take security seriously and appreciate your efforts in making this project safer.  
+Until the first stable release, security fixes are provided only for the latest development version.
 
-If you discover a security vulnerability, please report it responsibly by following these steps:  
+## Reporting a vulnerability
 
-1. **Do not disclose the vulnerability publicly.**  
-2. Email us at **[enquiry@itpathsolutions.com](mailto:enquiry@itpathsolutions.com)** with the details of the vulnerability, including:  
-   - A clear description of the issue.  
-   - Steps to reproduce the vulnerability.  
-   - Potential impact and suggested fixes (if any).  
-3. We will acknowledge receipt of your report and investigate the issue promptly.  
-4. Once resolved, we will:  
-   - Release a fix as soon as possible.  
-   - Update this document and the project’s **Changelog** to reflect the resolution.  
+Please report security issues through GitHub Security Advisories:
 
-We appreciate your cooperation in keeping our project secure!  
+https://github.com/trianity/laravel-db-inspector/security/advisories/new
+
+If that channel is not available, open a private report through the repository security workflow rather than disclosing the issue publicly.
+
+## Sensitive database information
+
+This package can process or display sensitive database schema information, including:
+
+- table names;
+- column names;
+- indexes;
+- constraint information;
+- size and usage statistics;
+- schema patterns that may reveal application structure.
+
+Do not publish screenshots or analysis output without checking whether they expose sensitive information.
+
+## Web interface safety
+
+- The web interface is disabled by default.
+- The route is only registered after explicit configuration opt-in.
+- Middleware protection is the host application’s responsibility.
+- The package does not automatically choose an authentication guard.
+- Public access should not be enabled in production without additional authorization or network restrictions.
+
+## Production usage
+
+- Install the package as a development dependency.
+- Use `composer install --no-dev` for production deployments.
+- The current analyzer performs read-only inspection queries and does not write application data.
+- For production databases, use the least-privilege database account that can still read schema metadata.
+- Before running analysis on a production system, verify backups and access controls.
+
+## Disclosure process
+
+We aim to acknowledge the report, investigate the issue, prepare a fix, and coordinate disclosure before public release when practical.

@@ -3,6 +3,8 @@
     "description": "A production-safe database schema and design inspector for Laravel.",
     "type": "library",
     "license": "MIT",
+    "homepage": "https://github.com/trianity/laravel-db-inspector",
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "Trianity\\LaravelDbInspector\\": "src/"
@@ -18,32 +20,29 @@
     },
     "authors": [
         {
-            "name": "Dhanik Keraliya",
-            "email": "dhanikk@itpathsolutions.com"
-        },
-        {
-            "name": "Archana Soni",
-            "email": "archanau@itpathsolutions.com",
+            "name": "Istvan Holbok",
+            "homepage": "https://github.com/trianity",
             "role": "Maintainer"
         }
     ],
     "keywords": [
-        "laravel-db-inspector",
         "laravel",
-        "php",
-        "performance",
         "database",
         "schema",
+        "inspection",
         "analysis",
-        "trianity"
+        "mariadb",
+        "mysql",
+        "postgresql",
+        "development-tool"
     ],
     "require": {
-        "php": "^8.1",
-        "illuminate/console": "^9.0|^10.0|^11.0|^12.0|^13.0",
-        "illuminate/routing": "^9.0|^10.0|^11.0|^12.0|^13.0",
-        "illuminate/support": "^9.0|^10.0|^11.0|^12.0|^13.0",
-        "illuminate/database": "^9.0|^10.0|^11.0|^12.0|^13.0",
-        "illuminate/view": "^9.0|^10.0|^11.0|^12.0|^13.0"
+        "php": "^8.4",
+        "illuminate/console": "^13.0",
+        "illuminate/database": "^13.0",
+        "illuminate/routing": "^13.0",
+        "illuminate/support": "^13.0",
+        "illuminate/view": "^13.0"
     },
     "extra": {
         "laravel": {
@@ -51,6 +50,10 @@
                 "Trianity\\LaravelDbInspector\\LaravelDbInspectorServiceProvider"
             ]
         }
+    },
+    "support": {
+        "issues": "https://github.com/trianity/laravel-db-inspector/issues",
+        "source": "https://github.com/trianity/laravel-db-inspector"
     },
     "require-dev": {
         "pestphp/pest": "^4.7",

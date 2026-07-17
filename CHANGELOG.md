@@ -3,64 +3,95 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
-### Added
-- Copy buttons for commonly used README commands.
-- Detailed comments for all `config/laravel-db-inspector.php` configuration variables.
-- Storage engine consistency check (non-InnoDB and mixed-engine detection).
-- Charset and collation consistency check (utf8 vs utf8mb4 mismatch and mixed collations).
-- Auto-increment risk check for near-limit and high-growth overflow scenarios.
-- Index cardinality analysis to detect low-selectivity potentially useless indexes.
-- Composite index recommendation check for common `user_id + status/state` filters.
-- Database-level size monitoring with threshold-based alerting.
-- Table storage dominance detection and unusually large table warnings.
-- Primary key presence check for all tables.
 
-### Fixed
-- Added preflight checks for missing database configuration/connection.
-- Added migration readiness checks to guide users to run `php artisan migrate` first.
-- Improved user-facing messages for setup issues in both CLI and web analysis output.
+### Added
+
+- `AnalysisConnection` for centralized analysis connection handling.
+- `DatabaseDriver` and `TableNameNormalizer` helpers.
+- Explicit zero-table preflight failure handling.
+- Pest 4 and Orchestra Testbench 11 package test coverage.
+- Package boot, command registration, route registration, connection, prefix, and no-tables regression tests.
+- Composer metadata and publishing checks for repository readiness.
 
 ### Changed
-- Enhanced table size analysis to include data/index split and ratio versus full database size.
-- Expanded schema metadata extraction to include engine, collation, row estimate, and auto-increment details for advanced checks.
-- Enhanced data type appropriateness with column-name based heuristics (`price/amount/total`, `is_/has_`, `*_at`, `email`).
-- Enhanced index cardinality analysis with status/flag standalone-index misuse warnings.
-- Updated pivot table structure rule to allow timestamps (aligning with global timestamp policy).
+
+- Narrowed the supported runtime to PHP 8.4+ and Laravel 13.
+- Package rename to `trianity/laravel-db-inspector`.
+- Namespace and service provider naming aligned with the new package identity.
+- Artisan command renamed to `db-inspector:analyze`.
+- Connection handling centralized across the analyzer and checks.
+- Check classes now use the shared analysis connection API.
+- Logical and physical table names are kept separate during analysis.
+- Web route registration is now guarded by explicit config flags.
+
+### Fixed
+
+- MariaDB is treated as MySQL-compatible during analysis.
+- Connection name and database driver name are no longer conflated.
+- Laravel table prefix is no longer applied twice.
+- Zero discovered tables now fails analysis instead of reporting a false success.
+- Larastan issues from the previous task cycle were resolved.
+
+### Security
+
+- Web route remains disabled by default.
+- Web route only registers after explicit config opt-in.
+- Middleware is config-driven and must be chosen by the host application.
+- Installation guidance uses `--dev` to keep the package out of production runtime installs.
+
+### Removed
+
+- Old `dbstan:analyze` references in runtime code and user-facing documentation.
 
 ## [1.0.8] - 2026-04-06
+
 ### Added
-- Added PostgreSQL support.
+
+- PostgreSQL support.
 
 ### Changed
+
 - Released version 1.0.8.
 
-## [1.0.1] - 2026-02-13
-### Added
-- Initial release of orphan risk check
-
-## [1.0.2] - 2026-02-13
-### Fixed
-- Minor bug fixes
-
-## [1.0.3] - 2026-02-26
-### Added
-- URL-based logic implemented
-- Configuration files added
-- Commands can be run based on mode
-
-### Changed
-- Refactored logic to select between command or URL mode
-
-### Fixed
-- No critical fixes in this release
-
-## [1.0.4] - 2026-03-09
-### Fixed
-- Minor bug fixes
-- Updated README.md
-
 ## [1.0.5] - 2026-03-09
+
 ### Fixed
+
 - Added logic to show a message when the database is not selected.
 - Updated error color naming by type.
 - Added a loader while scanning the database.
+
+## [1.0.4] - 2026-03-09
+
+### Fixed
+
+- Minor bug fixes.
+- Updated README.md.
+
+## [1.0.3] - 2026-02-26
+
+### Added
+
+- URL-based logic implemented.
+- Configuration files added.
+- Commands can be run based on mode.
+
+### Changed
+
+- Refactored logic to select between command or URL mode.
+
+### Fixed
+
+- No critical fixes in this release.
+
+## [1.0.2] - 2026-02-13
+
+### Fixed
+
+- Minor bug fixes.
+
+## [1.0.1] - 2026-02-13
+
+### Added
+
+- Initial release of orphan risk check.
