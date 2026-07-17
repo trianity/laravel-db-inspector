@@ -2,7 +2,6 @@
 
 namespace Trianity\LaravelDbInspector\Checks\Integrity;
 
-use Illuminate\Support\Facades\DB;
 use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class CascadingActionsCheck extends BaseCheck
@@ -22,10 +21,10 @@ class CascadingActionsCheck extends BaseCheck
     public function run(array $schema): array
     {
         $issues = [];
-        $database = DB::getDatabaseName();
+        $database = $this->databaseName();
 
         // Fetch all FK delete rules in one query (avoid N+1)
-        $foreignKeys = DB::select('
+        $foreignKeys = $this->select('
             SELECT 
                 kcu.TABLE_NAME,
                 kcu.COLUMN_NAME,

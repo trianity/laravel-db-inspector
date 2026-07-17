@@ -35,11 +35,13 @@ class DatabaseInspectorAnalyzeCommand extends Command
         $this->info('Database Inspector Analysis Context');
         $this->line(str_repeat('-', 40));
 
+        $this->line("Connection  : {$info['connection']}");
         $this->line("Driver      : {$info['driver']}");
         $this->line("Database    : {$info['database']}");
         $this->line("Host        : {$info['host']}");
         $this->line("Port        : {$info['port']}");
         $this->line("Tables      : {$info['tables']}");
+        $this->line("Prefix      : {$info['prefix']}");
         $this->line("Environment : {$info['environment']}");
 
         $this->line(str_repeat('-', 40));

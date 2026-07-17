@@ -24,10 +24,20 @@ class StatusIndexCheck extends BaseCheck
 
         foreach ($schema as $table => $data) {
 
-            $columns = array_column($data['columns'] ?? [], 'Field');
-            $indexes = array_column($data['indexes'] ?? [], 'Column_name');
+            $columns = [];
+            foreach ($data['columns'] ?? [] as $column) {
+                $columns[] = $column->Field ?? $column->column_name ?? $column->name ?? null;
+            }
+
+            $indexes = [];
+            foreach ($data['indexes'] ?? [] as $index) {
+                $indexes[] = $index->Column_name ?? $index->column_name ?? null;
+            }
 
             foreach ($columns as $column) {
+                if ($column === null) {
+                    continue;
+                }
 
                 $columnLower = strtolower($column);
 

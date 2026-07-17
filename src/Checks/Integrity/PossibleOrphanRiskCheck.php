@@ -2,7 +2,6 @@
 
 namespace Trianity\LaravelDbInspector\Checks\Integrity;
 
-use Illuminate\Support\Facades\DB;
 use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class PossibleOrphanRiskCheck extends BaseCheck
@@ -25,13 +24,13 @@ class PossibleOrphanRiskCheck extends BaseCheck
     public function run(array $schema): array
     {
         $issues = [];
-        $driver = DB::getDriverName();
-        $database = DB::getDatabaseName();
+        $driver = $this->driver();
+        $database = $this->databaseName();
 
         // ✅ Fetch FK metadata (DB-specific)
-        if ($driver === 'mysql') {
+        if ($driver === 'mysql' || $driver === 'mariadb') {
 
-            $foreignKeys = DB::select('
+            $foreignKeys = $this->select('
                 SELECT TABLE_NAME, COLUMN_NAME
                 FROM information_schema.KEY_COLUMN_USAGE
                 WHERE TABLE_SCHEMA = ?
@@ -40,7 +39,7 @@ class PossibleOrphanRiskCheck extends BaseCheck
 
         } elseif ($driver === 'pgsql') {
 
-            $foreignKeys = DB::select("
+            $foreignKeys = $this->select("
                 SELECT
                     tc.table_name,
                     kcu.column_name

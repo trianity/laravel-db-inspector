@@ -2,8 +2,8 @@
 
 namespace Trianity\LaravelDbInspector\Checks\Structure;
 
-use Illuminate\Support\Facades\DB;
 use Trianity\LaravelDbInspector\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Database\DatabaseDriver;
 
 class EnumOveruseCheck extends BaseCheck
 {
@@ -23,7 +23,7 @@ class EnumOveruseCheck extends BaseCheck
     public function run(array $schema): array
     {
         $issues = [];
-        $driver = DB::getDriverName();
+        $driver = $this->driver();
 
         foreach ($schema as $table => $data) {
 
@@ -87,9 +87,9 @@ class EnumOveruseCheck extends BaseCheck
                 }
 
                 // ✅ PostgreSQL ENUM values extraction
-                elseif ($driver === 'pgsql') {
+                elseif (DatabaseDriver::isPostgreSql($driver)) {
 
-                    $enumValues = DB::select('
+                    $enumValues = $this->select('
                         SELECT e.enumlabel
                         FROM pg_type t
                         JOIN pg_enum e ON t.oid = e.enumtypid

@@ -56,7 +56,9 @@
         "pestphp/pest": "^4.7",
         "orchestra/testbench": "^11.1",
         "larastan/larastan": "^3.10",
-        "laravel/pint": "^1.29"
+        "laravel/pint": "^1.29",
+        "mrpunyapal/peststan": "^0.2.11",
+        "phpstan/phpstan-mockery": "^2.0"
     },
     "config": {
         "allow-plugins": {

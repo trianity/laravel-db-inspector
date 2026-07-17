@@ -2,7 +2,6 @@
 
 namespace Trianity\LaravelDbInspector\Checks\Integrity;
 
-use Illuminate\Support\Facades\DB;
 use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class UniqueConstraintViolationsCheck extends BaseCheck
@@ -36,7 +35,7 @@ class UniqueConstraintViolationsCheck extends BaseCheck
                 }
 
                 // Check if duplicate exists (optimized)
-                $duplicateExists = DB::table($table)
+                $duplicateExists = $this->table($table)
                     ->select($field)
                     ->groupBy($field)
                     ->havingRaw('COUNT(*) > 1')

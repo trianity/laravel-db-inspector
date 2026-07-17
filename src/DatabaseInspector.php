@@ -4,72 +4,82 @@ declare(strict_types=1);
 
 namespace Trianity\LaravelDbInspector;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Throwable;
 use Trianity\LaravelDbInspector\Contracts\CheckInterface;
+use Trianity\LaravelDbInspector\Database\AnalysisConnection;
+use Trianity\LaravelDbInspector\Database\DatabaseDriver;
+use Trianity\LaravelDbInspector\Database\TableNameNormalizer;
 
 class DatabaseInspector
 {
+    /**
+     * @var array<int, CheckInterface>
+     */
     protected array $checks = [];
 
-    public function __construct()
+    private readonly AnalysisConnection $analysisConnection;
+
+    private readonly TableNameNormalizer $tableNameNormalizer;
+
+    public function __construct(?AnalysisConnection $analysisConnection = null)
     {
+        $this->analysisConnection = $analysisConnection
+            ?? new AnalysisConnection(config('laravel-db-inspector.connection'));
+        $this->tableNameNormalizer = new TableNameNormalizer;
         $this->loadChecks();
     }
 
+    /**
+     * @return array{connection: string, driver: string, database: string, host: string, port: string|int|null, tables: int, prefix: string, environment: string}
+     */
     public function getDatabaseInfo(): array
     {
-        $driver = DB::getDriverName();
-        $database = DB::getDatabaseName();
-
-        $config = config("database.connections.$driver");
-
-        // Count tables
-        $tablesCount = 0;
-
-        if ($driver === 'mysql') {
-            $tables = DB::select('SHOW TABLES');
-            $tablesCount = count($tables);
-        } elseif ($driver === 'pgsql') {
-            $tables = DB::select("
-                SELECT tablename 
-                FROM pg_catalog.pg_tables 
-                WHERE schemaname = 'public'
-            ");
-            $tablesCount = count($tables);
-        }
+        $config = $this->analysisConnection->config();
 
         return [
-            'driver' => $driver,
-            'database' => $database,
-            'host' => $config['host'] ?? 'N/A',
+            'connection' => $this->analysisConnection->name(),
+            'driver' => $this->analysisConnection->driver(),
+            'database' => $this->analysisConnection->databaseName(),
+            'host' => (string) ($config['host'] ?? 'N/A'),
             'port' => $config['port'] ?? 'N/A',
-            'tables' => $tablesCount,
+            'tables' => $this->analysisConnection->tableCount(),
+            'prefix' => $this->analysisConnection->prefix(),
             'environment' => app()->environment(),
         ];
     }
 
     public function getPreflightError(): ?string
     {
-        $databaseName = DB::getDatabaseName();
+        $connectionName = $this->analysisConnection->name();
+        $driver = $this->analysisConnection->driver();
+        $databaseName = $this->analysisConnection->databaseName();
+        $tableCount = $this->analysisConnection->tableCount();
         $migrationTableName = $this->resolveMigrationTableName();
 
-        if (empty($databaseName)) {
+        if ($databaseName === '') {
             return 'Database is not configured.';
         }
 
+        if ($tableCount === 0) {
+            return sprintf(
+                'No database tables were discovered for connection [%s] using driver [%s] and database [%s]. 0 tables discovered. Analysis was not performed.',
+                $connectionName,
+                $driver,
+                $databaseName
+            );
+        }
+
         try {
-            DB::connection()->getPdo();
-        } catch (Throwable $e) {
+            $this->analysisConnection->connection()->getPdo();
+        } catch (\Throwable) {
             return 'Database connection failed.';
         }
 
-        if (! DB::getSchemaBuilder()->hasTable($migrationTableName)) {
+        if (! $this->analysisConnection->connection()->getSchemaBuilder()->hasTable($migrationTableName)) {
             return 'Run migrations first.';
         }
 
-        if (DB::table($migrationTableName)->count() === 0) {
+        if ($this->analysisConnection->connection()->table($migrationTableName)->count() === 0) {
             return 'No migrations found.';
         }
 
@@ -90,7 +100,6 @@ class DatabaseInspector
         $path = __DIR__.'/Checks';
 
         foreach (File::allFiles($path) as $file) {
-
             $class = $this->getClassFromFile($file);
 
             if (! class_exists($class)) {
@@ -103,10 +112,7 @@ class DatabaseInspector
                 continue;
             }
 
-            if (in_array(
-                CheckInterface::class,
-                $reflection->getInterfaceNames()
-            )) {
+            if (in_array(CheckInterface::class, $reflection->getInterfaceNames(), true)) {
                 $this->checks[] = app($class);
             }
         }
@@ -120,15 +126,13 @@ class DatabaseInspector
         return __NAMESPACE__.'\\'.$relative;
     }
 
+    /**
+     * @return array<string, array{name: string, physical_name: string, columns: array<int, object>, indexes: array<int, object>}>
+     */
     public function analyze(): array
     {
         if ($this->getPreflightError()) {
-            return [
-                'structure' => [],
-                'integrity' => [],
-                'performance' => [],
-                'architecture' => [],
-            ];
+            return [];
         }
 
         $schema = $this->extractSchema();
@@ -141,7 +145,6 @@ class DatabaseInspector
         ];
 
         foreach ($this->checks as $check) {
-
             $category = $check->category();
             $issues = array_filter($check->run($schema));
 
@@ -153,68 +156,73 @@ class DatabaseInspector
         return $grouped;
     }
 
+    /**
+     * @return array<string, array{name: string, physical_name: string, columns: array<int, object>, indexes: array<int, object>}>
+     */
     protected function extractSchema(): array
     {
-        $driver = DB::getDriverName();
         $schema = [];
+        $prefix = $this->analysisConnection->prefix();
+        $driver = $this->analysisConnection->driver();
+        $connection = $this->analysisConnection->connection();
 
-        if ($driver === 'mysql') {
+        foreach ($this->analysisConnection->physicalTableNames() as $physicalName) {
+            $logicalName = $this->tableNameNormalizer->toLogicalName($physicalName, $prefix);
 
-            $tables = DB::select('SHOW TABLES');
-            $key = 'Tables_in_'.DB::getDatabaseName();
-
-            foreach ($tables as $tableObj) {
-
-                $table = $tableObj->$key;
-
-                $columnsRaw = DB::select("SHOW FULL COLUMNS FROM `$table`");
-                $indexes = DB::select("SHOW INDEX FROM `$table`");
-
-                $columns = array_map(fn ($col) => (object) [
-                    'name' => $col->Field,
-                    'type' => strtolower($col->Type),
-                ], $columnsRaw);
-
-                $schema[$table] = [
-                    'columns' => $columns,
-                    'indexes' => $indexes,
-                ];
-            }
-
-        } elseif ($driver === 'pgsql') {
-
-            $tables = DB::select("
-                SELECT tablename 
-                FROM pg_catalog.pg_tables 
-                WHERE schemaname = 'public'
-            ");
-
-            foreach ($tables as $tableObj) {
-
-                $table = $tableObj->tablename;
-
-                $columnsRaw = DB::select('
-                    SELECT column_name, data_type
+            if (DatabaseDriver::isMySqlCompatible($driver)) {
+                $columnsRaw = $connection->select("SHOW FULL COLUMNS FROM `{$physicalName}`");
+                $indexes = $connection->select("SHOW INDEX FROM `{$physicalName}`");
+            } elseif (DatabaseDriver::isPostgreSql($driver)) {
+                $columnsRaw = $connection->select('
+                    SELECT column_name, data_type, is_nullable
                     FROM information_schema.columns
                     WHERE table_name = ?
-                ', [$table]);
+                ', [$physicalName]);
 
-                $indexes = DB::select('
+                $indexes = $connection->select('
                     SELECT indexname, indexdef
                     FROM pg_indexes
                     WHERE tablename = ?
-                ', [$table]);
-
-                $columns = array_map(fn ($col) => (object) [
-                    'name' => $col->column_name,
-                    'type' => strtolower($col->data_type),
-                ], $columnsRaw);
-
-                $schema[$table] = [
-                    'columns' => $columns,
-                    'indexes' => $indexes,
-                ];
+                ', [$physicalName]);
+            } else {
+                continue;
             }
+
+            $columns = array_map(static function (object $column): object {
+                $field = $column->Field
+                    ?? $column->column_name
+                    ?? $column->name
+                    ?? '';
+
+                $type = $column->Type
+                    ?? $column->data_type
+                    ?? $column->type
+                    ?? '';
+
+                $nullable = $column->Null
+                    ?? $column->is_nullable
+                    ?? null;
+
+                return (object) array_merge((array) $column, [
+                    'name' => (string) $field,
+                    'physical_name' => (string) $field,
+                    'Field' => (string) $field,
+                    'column_name' => (string) $field,
+                    'type' => strtolower((string) $type),
+                    'Type' => (string) $type,
+                    'data_type' => strtolower((string) $type),
+                    'nullable' => is_bool($nullable)
+                        ? $nullable
+                        : (is_string($nullable) ? strtoupper($nullable) === 'YES' : false),
+                ]);
+            }, $columnsRaw);
+
+            $schema[$logicalName] = [
+                'name' => $logicalName,
+                'physical_name' => $physicalName,
+                'columns' => $columns,
+                'indexes' => $indexes,
+            ];
         }
 
         return $schema;

@@ -2,8 +2,8 @@
 
 namespace Trianity\LaravelDbInspector\Checks\Performance;
 
-use Illuminate\Support\Facades\DB;
 use Trianity\LaravelDbInspector\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Database\DatabaseDriver;
 
 class TableSizeAnalysisCheck extends BaseCheck
 {
@@ -29,13 +29,13 @@ class TableSizeAnalysisCheck extends BaseCheck
         $dominanceRatio = (float) ($this->config['table_dominance_ratio'] ?? 0.40);
         $unusualTableRatio = (float) ($this->config['unusually_large_table_ratio'] ?? 0.20);
 
-        $driver = DB::getDriverName();
-        $database = DB::getDatabaseName();
+        $driver = $this->driver();
+        $database = $this->databaseName();
 
         // ✅ Fetch table sizes based on DB driver
-        if ($driver === 'mysql') {
+        if (DatabaseDriver::isMySqlCompatible($driver)) {
 
-            $tables = DB::select('
+            $tables = $this->select('
                 SELECT 
                     TABLE_NAME,
                     ROUND((DATA_LENGTH)/1024/1024, 2) AS data_mb,
@@ -45,9 +45,9 @@ class TableSizeAnalysisCheck extends BaseCheck
                 WHERE TABLE_SCHEMA = ?
             ', [$database]);
 
-        } elseif ($driver === 'pgsql') {
+        } elseif (DatabaseDriver::isPostgreSql($driver)) {
 
-            $tables = DB::select('
+            $tables = $this->select('
                 SELECT
                     relname AS table_name,
                     pg_relation_size(relid) / 1024 / 1024 AS data_mb,
@@ -89,11 +89,14 @@ class TableSizeAnalysisCheck extends BaseCheck
 
         foreach (array_keys($schema) as $table) {
 
+            $physicalTable = $schema[$table]['physical_name'] ?? $table;
             $sizeMeta = $sizes[$table] ?? [
                 'data_mb' => 0.0,
                 'index_mb' => 0.0,
                 'total_mb' => 0.0,
             ];
+
+            $sizeMeta = $sizes[$physicalTable] ?? $sizeMeta;
 
             $sizeMB = (float) $sizeMeta['total_mb'];
             $ratio = $dbTotalMB > 0 ? ($sizeMB / $dbTotalMB) : 0;

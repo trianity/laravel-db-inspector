@@ -2,7 +2,6 @@
 
 namespace Trianity\LaravelDbInspector\Checks\Performance;
 
-use Illuminate\Support\Facades\DB;
 use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class NullValueRatioCheck extends BaseCheck
@@ -27,7 +26,7 @@ class NullValueRatioCheck extends BaseCheck
         foreach ($schema as $table => $data) {
 
             // ✅ Get total row count once
-            $totalCount = DB::table($table)->count();
+            $totalCount = $this->table($table)->count();
 
             if ($totalCount === 0) {
                 continue;
@@ -63,7 +62,7 @@ class NullValueRatioCheck extends BaseCheck
                 }
 
                 // ✅ Optimized: single query instead of 2
-                $result = DB::table($table)
+                $result = $this->table($table)
                     ->selectRaw("
                         COUNT(*) as total,
                         COUNT({$field}) as non_null
