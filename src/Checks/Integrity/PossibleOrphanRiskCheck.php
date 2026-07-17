@@ -66,7 +66,7 @@ class PossibleOrphanRiskCheck extends BaseCheck
 
         foreach ($schema as $table => $data) {
 
-            foreach ($data['columns'] ?? [] as $column) {
+            foreach ($data['columns'] as $column) {
 
                 // ✅ Normalize column name
                 if (isset($column->name)) {
@@ -116,6 +116,6 @@ class PossibleOrphanRiskCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

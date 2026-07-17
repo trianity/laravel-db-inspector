@@ -44,6 +44,6 @@ class StorageEngineCheck extends BaseCheck
                 "\033[0;37;41m[ERROR]\033[0m Mixed storage engines detected ($engineSummary). Standardize all tables to InnoDB";
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

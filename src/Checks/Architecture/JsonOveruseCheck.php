@@ -29,7 +29,7 @@ class JsonOveruseCheck extends BaseCheck
         foreach ($schema as $table => $data) {
 
             $jsonColumns = array_filter(
-                $data['columns'] ?? [],
+                $data['columns'],
                 function ($col) {
 
                     // ✅ Preferred (normalized schema)
@@ -58,6 +58,6 @@ class JsonOveruseCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

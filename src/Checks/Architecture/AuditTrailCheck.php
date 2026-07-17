@@ -37,7 +37,7 @@ class AuditTrailCheck extends BaseCheck
                 continue;
             }
 
-            $columns = array_column($data['columns'] ?? [], 'Field');
+            $columns = array_column($data['columns'], 'Field');
 
             $hasCreatedAt = in_array('created_by', $columns);
             $hasUpdatedAt = in_array('updated_by', $columns);
@@ -62,6 +62,6 @@ class AuditTrailCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

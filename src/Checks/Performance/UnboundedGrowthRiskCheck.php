@@ -43,8 +43,8 @@ class UnboundedGrowthRiskCheck extends BaseCheck
                 continue;
             }
 
-            $columns = array_column($data['columns'] ?? [], 'Field');
-            $indexColumns = array_column($data['indexes'] ?? [], 'Column_name');
+            $columns = array_column($data['columns'], 'Field');
+            $indexColumns = array_column($data['indexes'], 'Column_name');
 
             // Only warn if created_at exists but not indexed
             if (
@@ -56,6 +56,6 @@ class UnboundedGrowthRiskCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

@@ -14,16 +14,13 @@ class DatabaseInspectorController extends Controller
     {
         $analyzer = app(DatabaseInspector::class);
         $preflightError = $analyzer->getPreflightError();
+        $result = $preflightError === null
+            ? $analyzer->inspect()
+            : null;
 
-        $groupedIssues = $preflightError === null
-            ? $analyzer->inspect()->groupedIssues()
-            : [
-                'structure' => [],
-                'integrity' => [],
-                'performance' => [],
-                'architecture' => [],
-            ];
-
-        return View::make('laravel_db_inspector::database_inspector_issue_list', compact('groupedIssues', 'preflightError'));
+        return View::make('laravel_db_inspector::database_inspector_issue_list', [
+            'result' => $result,
+            'preflightError' => $preflightError,
+        ]);
     }
 }

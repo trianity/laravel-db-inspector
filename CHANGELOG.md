@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Replaced heterogeneous check payloads with typed analysis results.
+- Standardized all checks to return structured findings.
+- Unified console, Markdown, and web rendering around the same result model.
+
+### Fixed
+
+- Prevented nested issue payloads from causing console and Markdown rendering type errors.
+
 ## [1.1.0] - 2026-07-17
 
 ### Added

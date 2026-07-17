@@ -29,8 +29,8 @@ class LogTableIndexingCheck extends BaseCheck
                 continue;
             }
 
-            $columns = array_column($data['columns'] ?? [], 'Field');
-            $indexColumns = array_column($data['indexes'] ?? [], 'Column_name');
+            $columns = array_column($data['columns'], 'Field');
+            $indexColumns = array_column($data['indexes'], 'Column_name');
 
             // Check created_at index
             if (in_array('created_at', $columns) &&
@@ -49,6 +49,6 @@ class LogTableIndexingCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

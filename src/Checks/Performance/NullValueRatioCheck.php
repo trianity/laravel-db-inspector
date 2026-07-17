@@ -32,7 +32,7 @@ class NullValueRatioCheck extends BaseCheck
                 continue;
             }
 
-            foreach ($data['columns'] ?? [] as $column) {
+            foreach ($data['columns'] as $column) {
 
                 // ✅ Normalize column name
                 if (isset($column->name)) {
@@ -88,6 +88,6 @@ class NullValueRatioCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

@@ -25,7 +25,7 @@ class LargeTextColumnsCheck extends BaseCheck
 
         foreach ($schema as $table => $data) {
 
-            foreach ($data['columns'] ?? [] as $column) {
+            foreach ($data['columns'] as $column) {
 
                 // ✅ Normalize column name
                 if (isset($column->name)) {
@@ -60,6 +60,6 @@ class LargeTextColumnsCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

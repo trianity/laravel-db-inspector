@@ -89,7 +89,7 @@ class TableSizeAnalysisCheck extends BaseCheck
 
         foreach (array_keys($schema) as $table) {
 
-            $physicalTable = $schema[$table]['physical_name'] ?? $table;
+            $physicalTable = $schema[$table]['physical_name'];
             $sizeMeta = $sizes[$table] ?? [
                 'data_mb' => 0.0,
                 'index_mb' => 0.0,
@@ -120,6 +120,6 @@ class TableSizeAnalysisCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

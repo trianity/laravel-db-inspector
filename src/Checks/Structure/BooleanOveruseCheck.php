@@ -26,7 +26,7 @@ class BooleanOveruseCheck extends BaseCheck
         foreach ($schema as $table => $data) {
 
             $booleanColumns = array_filter(
-                $data['columns'] ?? [],
+                $data['columns'],
                 function ($column) {
 
                     $type = strtolower($column->Type);
@@ -44,6 +44,6 @@ class BooleanOveruseCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

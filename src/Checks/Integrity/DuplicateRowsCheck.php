@@ -26,7 +26,7 @@ class DuplicateRowsCheck extends BaseCheck
 
         foreach ($schema as $table => $data) {
 
-            $indexes = $data['indexes'] ?? [];
+            $indexes = $data['indexes'];
 
             $hasPrimary = false;
             $hasUnique = false;
@@ -67,6 +67,6 @@ class DuplicateRowsCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

@@ -32,7 +32,7 @@ class IndexCardinalityAnalysisCheck extends BaseCheck
             }
 
             $indexColumnsByName = [];
-            foreach ($data['indexes'] ?? [] as $index) {
+            foreach ($data['indexes'] as $index) {
                 $indexName = (string) ($index->Key_name ?? '');
                 $seq = (int) ($index->Seq_in_index ?? 1);
                 $column = strtolower((string) ($index->Column_name ?? ''));
@@ -44,7 +44,7 @@ class IndexCardinalityAnalysisCheck extends BaseCheck
                 $indexColumnsByName[$indexName][$seq] = $column;
             }
 
-            foreach ($data['indexes'] ?? [] as $index) {
+            foreach ($data['indexes'] as $index) {
                 $indexName = (string) ($index->Key_name ?? '');
                 $columnName = (string) ($index->Column_name ?? '');
                 $columnLower = strtolower($columnName);
@@ -84,6 +84,6 @@ class IndexCardinalityAnalysisCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

@@ -30,7 +30,7 @@ class PivotTableStructureCheck extends BaseCheck
 
         foreach ($schema as $table => $data) {
 
-            $columns = $data['columns'] ?? [];
+            $columns = $data['columns'];
             $columnNames = array_column($columns, 'Field');
 
             // Detect FK-like columns
@@ -68,6 +68,6 @@ class PivotTableStructureCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

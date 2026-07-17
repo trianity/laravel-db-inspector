@@ -27,10 +27,10 @@ class PolymorphicOveruseCheck extends BaseCheck
 
             $fields = array_map(
                 fn ($col) => strtolower($col->Field),
-                $data['columns'] ?? []
+                $data['columns']
             );
 
-            $indexes = array_column($data['indexes'] ?? [], 'Column_name');
+            $indexes = array_column($data['indexes'], 'Column_name');
 
             $polymorphicPairs = [];
 
@@ -63,6 +63,6 @@ class PolymorphicOveruseCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

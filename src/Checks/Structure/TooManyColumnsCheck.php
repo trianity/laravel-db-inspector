@@ -35,6 +35,6 @@ class TooManyColumnsCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

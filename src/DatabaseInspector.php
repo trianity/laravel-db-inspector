@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Trianity\LaravelDbInspector;
 
-use Illuminate\Support\Facades\File;
-use Trianity\LaravelDbInspector\Contracts\CheckInterface;
+use Trianity\LaravelDbInspector\Analysis\AnalysisContext;
+use Trianity\LaravelDbInspector\Analysis\AnalysisResult;
+use Trianity\LaravelDbInspector\Analysis\Finding;
+use Trianity\LaravelDbInspector\Analysis\TechnicalError;
+use Trianity\LaravelDbInspector\Checks\CheckRegistry;
 use Trianity\LaravelDbInspector\Database\AnalysisConnection;
 use Trianity\LaravelDbInspector\Database\DatabaseDriver;
 use Trianity\LaravelDbInspector\Database\TableNameNormalizer;
@@ -13,7 +16,7 @@ use Trianity\LaravelDbInspector\Database\TableNameNormalizer;
 class DatabaseInspector
 {
     /**
-     * @var array<int, CheckInterface>
+     * @var array<int, object>
      */
     protected array $checks = [];
 
@@ -29,23 +32,20 @@ class DatabaseInspector
         $this->loadChecks();
     }
 
-    /**
-     * @return array{connection: string, driver: string, database: string, host: string, port: string|int|null, tables: int, prefix: string, environment: string}
-     */
-    public function getDatabaseInfo(): array
+    public function getContext(): AnalysisContext
     {
         $config = $this->analysisConnection->config();
 
-        return [
-            'connection' => $this->analysisConnection->name(),
-            'driver' => $this->analysisConnection->driver(),
-            'database' => $this->analysisConnection->databaseName(),
-            'host' => (string) ($config['host'] ?? 'N/A'),
-            'port' => $config['port'] ?? 'N/A',
-            'tables' => $this->analysisConnection->tableCount(),
-            'prefix' => $this->analysisConnection->prefix(),
-            'environment' => app()->environment(),
-        ];
+        return new AnalysisContext(
+            connectionName: $this->analysisConnection->name(),
+            driver: $this->analysisConnection->driver(),
+            database: $this->analysisConnection->databaseName(),
+            host: isset($config['host']) ? (string) $config['host'] : null,
+            port: $config['port'] ?? null,
+            tableCount: $this->analysisConnection->tableCount(),
+            prefix: $this->analysisConnection->prefix(),
+            environment: app()->environment(),
+        );
     }
 
     public function getPreflightError(): ?string
@@ -86,48 +86,52 @@ class DatabaseInspector
         return null;
     }
 
-    public function inspect(): DatabaseInspectionResult
+    public function inspect(): AnalysisResult
     {
-        $context = $this->getDatabaseInfo();
+        $context = $this->getContext();
 
         if ($this->getPreflightError()) {
-            return new DatabaseInspectionResult($context, [], [], count($this->checks));
+            return new AnalysisResult($context, [], [], array_fill(0, count($this->checks), 'preflight'));
         }
 
         $schema = $this->extractSchema();
-        $grouped = [
-            'structure' => [],
-            'integrity' => [],
-            'performance' => [],
-            'architecture' => [],
-        ];
+        $findings = [];
         $technicalErrors = [];
 
         foreach ($this->checks as $check) {
-            $category = $check->category();
+            $ruleId = $check->ruleId();
             $checkName = $check->name();
 
             try {
                 $issues = array_filter($check->run($schema));
             } catch (\Throwable $throwable) {
-                $technicalErrors[] = [
-                    'check' => $checkName,
-                    'message' => $throwable->getMessage(),
-                ];
+                $technicalErrors[] = new TechnicalError(
+                    ruleId: $ruleId,
+                    checkName: $checkName,
+                    message: $throwable->getMessage(),
+                    exceptionClass: $throwable::class,
+                );
 
                 continue;
             }
 
-            if ($issues !== []) {
-                $grouped[$category][$checkName] = $issues;
+            foreach ($issues as $issue) {
+                if (! $issue instanceof Finding) {
+                    throw new \UnexpectedValueException(sprintf(
+                        'Check [%s] returned a non-Finding payload.',
+                        $checkName
+                    ));
+                }
+
+                $findings[] = $issue;
             }
         }
 
-        return new DatabaseInspectionResult(
+        return new AnalysisResult(
             $context,
-            $grouped,
+            $findings,
             $technicalErrors,
-            count($this->checks)
+            array_map(static fn (object $check): string => $check->ruleId(), $this->checks)
         );
     }
 
@@ -142,45 +146,27 @@ class DatabaseInspector
 
     protected function loadChecks(): void
     {
-        $path = __DIR__.'/Checks';
-
-        foreach (File::allFiles($path) as $file) {
-            $class = $this->getClassFromFile($file);
-
-            if (! class_exists($class)) {
-                continue;
-            }
-
-            $reflection = new \ReflectionClass($class);
-
-            if ($reflection->isAbstract() || $reflection->isInterface() || $reflection->isTrait()) {
-                continue;
-            }
-
-            if (in_array(CheckInterface::class, $reflection->getInterfaceNames(), true)) {
-                $this->checks[] = app($class);
-            }
+        foreach (CheckRegistry::classes() as $class) {
+            $this->checks[] = app($class);
         }
     }
 
-    protected function getClassFromFile($file): string
-    {
-        $relative = str_replace(__DIR__.DIRECTORY_SEPARATOR, '', $file->getRealPath());
-        $relative = str_replace(['.php', DIRECTORY_SEPARATOR], ['', '\\'], $relative);
-
-        return __NAMESPACE__.'\\'.$relative;
-    }
-
     /**
-     * @return array<string, array<int, string>>
+     * @return array<string, array<string, list<string>>>
      */
     public function analyze(): array
     {
-        return $this->inspect()->flatIssues();
+        $issues = [];
+
+        foreach ($this->inspect()->findings as $finding) {
+            $issues[$finding->category][$finding->checkName][] = $finding->message;
+        }
+
+        return $issues;
     }
 
     /**
-     * @return array<string, array{name: string, physical_name: string, columns: array<int, object>, indexes: array<int, object>}>
+     * @return array<string, array{name: string, physical_name: string, columns: list<object>, indexes: list<object>, engine?: string|null, table_rows?: int, table_collation?: string|null, auto_increment?: int|float|null}>
      */
     protected function extractSchema(): array
     {

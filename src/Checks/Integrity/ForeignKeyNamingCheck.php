@@ -26,7 +26,7 @@ class ForeignKeyNamingCheck extends BaseCheck
 
         foreach ($schema as $table => $data) {
 
-            foreach ($data['columns'] ?? [] as $column) {
+            foreach ($data['columns'] as $column) {
 
                 // ✅ Normalize column name across DBs
                 if (isset($column->name)) {
@@ -55,6 +55,6 @@ class ForeignKeyNamingCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

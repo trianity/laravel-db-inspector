@@ -23,7 +23,7 @@ class PrimaryKeyPresenceCheck extends BaseCheck
         foreach ($schema as $table => $data) {
             $hasPrimary = false;
 
-            foreach ($data['indexes'] ?? [] as $index) {
+            foreach ($data['indexes'] as $index) {
                 if (strtoupper((string) ($index->Key_name ?? '')) === 'PRIMARY') {
                     $hasPrimary = true;
                     break;
@@ -36,6 +36,6 @@ class PrimaryKeyPresenceCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

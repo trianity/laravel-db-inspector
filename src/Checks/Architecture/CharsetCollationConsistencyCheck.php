@@ -34,7 +34,7 @@ class CharsetCollationConsistencyCheck extends BaseCheck
             }
 
             $columnCollations = [];
-            foreach ($data['columns'] ?? [] as $column) {
+            foreach ($data['columns'] as $column) {
                 $collation = strtolower((string) ($column->Collation ?? ''));
                 if ($collation !== '') {
                     $columnCollations[$collation] = true;
@@ -58,6 +58,6 @@ class CharsetCollationConsistencyCheck extends BaseCheck
                 "\033[0;30;43m[WARNING]\033[0m Multiple table collations detected (".implode(', ', $distinctCollations).'). Keep a single collation for predictable comparisons';
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

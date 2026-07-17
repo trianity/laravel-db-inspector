@@ -24,7 +24,7 @@ class DataTypeAppropriatenessCheck extends BaseCheck
 
         foreach ($schema as $table => $data) {
 
-            foreach ($data['columns'] ?? [] as $column) {
+            foreach ($data['columns'] as $column) {
                 $name = strtolower((string) ($column->Field ?? ''));
                 $type = strtolower((string) ($column->Type ?? ''));
 
@@ -80,6 +80,6 @@ class DataTypeAppropriatenessCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

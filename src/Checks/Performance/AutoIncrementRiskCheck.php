@@ -25,7 +25,7 @@ class AutoIncrementRiskCheck extends BaseCheck
         $growthRowsThreshold = (int) ($this->config['autoincrement_growth_rows_threshold'] ?? 5000000);
 
         foreach ($schema as $table => $data) {
-            $columns = $data['columns'] ?? [];
+            $columns = $data['columns'];
             $nextValue = $data['auto_increment'] ?? null;
             $tableRows = (int) ($data['table_rows'] ?? 0);
 
@@ -63,7 +63,7 @@ class AutoIncrementRiskCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 
     protected function resolveIntegerMaxValue(string $type): ?float

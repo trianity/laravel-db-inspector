@@ -4,31 +4,34 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
-use Trianity\LaravelDbInspector\DatabaseInspectionResult;
+use Trianity\LaravelDbInspector\Analysis\AnalysisContext;
+use Trianity\LaravelDbInspector\Analysis\AnalysisResult;
+use Trianity\LaravelDbInspector\Analysis\Finding;
+use Trianity\LaravelDbInspector\Analysis\Severity;
 use Trianity\LaravelDbInspector\DatabaseInspector;
 
-function bindFakeInspector(array $groupedIssues = [], array $technicalErrors = [], int $checksExecuted = 12): void
+function bindFakeInspector(array $findings = [], array $technicalErrors = [], int $checksExecuted = 12): void
 {
-    app()->instance(DatabaseInspector::class, new class($groupedIssues, $technicalErrors, $checksExecuted) extends DatabaseInspector
+    app()->instance(DatabaseInspector::class, new class($findings, $technicalErrors, $checksExecuted) extends DatabaseInspector
     {
         public function __construct(
-            private readonly array $groupedIssues,
+            private readonly array $findings,
             private readonly array $technicalErrors,
             private readonly int $checksExecuted,
         ) {}
 
-        public function getDatabaseInfo(): array
+        public function getContext(): AnalysisContext
         {
-            return [
-                'connection' => 'crm',
-                'driver' => 'mariadb',
-                'database' => 'kaszanap_laracrmdb',
-                'host' => 'localhost',
-                'port' => 3306,
-                'tables' => 77,
-                'prefix' => 'nkt8_',
-                'environment' => 'testing',
-            ];
+            return new AnalysisContext(
+                connectionName: 'crm',
+                driver: 'mariadb',
+                database: 'kaszanap_laracrmdb',
+                host: 'localhost',
+                port: 3306,
+                tableCount: 77,
+                prefix: 'nkt8_',
+                environment: 'testing',
+            );
         }
 
         public function getPreflightError(): ?string
@@ -36,16 +39,30 @@ function bindFakeInspector(array $groupedIssues = [], array $technicalErrors = [
             return null;
         }
 
-        public function inspect(): DatabaseInspectionResult
+        public function inspect(): AnalysisResult
         {
-            return new DatabaseInspectionResult(
-                $this->getDatabaseInfo(),
-                $this->groupedIssues,
+            return new AnalysisResult(
+                $this->getContext(),
+                $this->findings,
                 $this->technicalErrors,
-                $this->checksExecuted,
+                array_fill(0, $this->checksExecuted, 'rule'),
             );
         }
     });
+}
+
+function fakeFinding(string $ruleId, string $checkName, string $category, Severity $severity, string $message, ?string $table = null, ?string $column = null, ?string $recommendation = null): Finding
+{
+    return new Finding(
+        ruleId: $ruleId,
+        checkName: $checkName,
+        category: $category,
+        severity: $severity,
+        message: $message,
+        table: $table,
+        column: $column,
+        recommendation: $recommendation,
+    );
 }
 
 it('writes the default markdown report to the application root', function (): void {
@@ -53,11 +70,16 @@ it('writes the default markdown report to the application root', function (): vo
     File::delete($reportPath);
 
     bindFakeInspector([
-        'performance' => [
-            'Missing Foreign Key Indexes' => [
-                "\033[0;37;41m[ERROR]\033[0m 'users.email_id' column looks like FK but has no index",
-            ],
-        ],
+        fakeFinding(
+            'performance.missing-indexes',
+            'Missing Foreign Key Indexes',
+            'performance',
+            Severity::Error,
+            'users.email_id column looks like FK but has no index',
+            'users',
+            'email_id',
+            'Add an index to support the foreign key',
+        ),
     ]);
 
     try {
@@ -66,6 +88,7 @@ it('writes the default markdown report to the application root', function (): vo
         expect($exitCode)->toBe(0);
         expect(File::exists($reportPath))->toBeTrue();
         expect(File::get($reportPath))->toContain('# Laravel Database Inspection Report');
+        expect(File::get($reportPath))->toContain('performance.missing-indexes');
         expect(Artisan::output())->toContain('Markdown report written to: '.$reportPath);
     } finally {
         File::delete($reportPath);
@@ -78,11 +101,15 @@ it('skips report writing when --no-report is used', function (): void {
     File::deleteDirectory(dirname($reportPath));
 
     bindFakeInspector([
-        'performance' => [
-            'Missing Foreign Key Indexes' => [
-                "\033[0;37;41m[ERROR]\033[0m 'users.email_id' column looks like FK but has no index",
-            ],
-        ],
+        fakeFinding(
+            'performance.missing-indexes',
+            'Missing Foreign Key Indexes',
+            'performance',
+            Severity::Error,
+            'users.email_id column looks like FK but has no index',
+            'users',
+            'email_id',
+        ),
     ]);
 
     try {
@@ -109,11 +136,15 @@ it('allows --output to override a disabled report config', function (): void {
     config()->set('laravel-db-inspector.report.enabled', false);
 
     bindFakeInspector([
-        'performance' => [
-            'Missing Foreign Key Indexes' => [
-                "\033[0;37;41m[ERROR]\033[0m 'users.email_id' column looks like FK but has no index",
-            ],
-        ],
+        fakeFinding(
+            'performance.missing-indexes',
+            'Missing Foreign Key Indexes',
+            'performance',
+            Severity::Error,
+            'users.email_id column looks like FK but has no index',
+            'users',
+            'email_id',
+        ),
     ]);
 
     try {
@@ -131,38 +162,26 @@ it('allows --output to override a disabled report config', function (): void {
     }
 });
 
-it('renders associative issue lists without failing on string keys', function (): void {
+it('renders structured findings with numeric ordering', function (): void {
     bindFakeInspector([
-        'performance' => [
-            'Missing Foreign Key Indexes' => [
-                'missing-index' => "\033[0;37;41m[ERROR]\033[0m 'users.email_id' column looks like FK but has no index",
-                'nullable-column' => "\033[0;37;41m[ERROR]\033[0m 'users.profile_id' column is nullable",
-            ],
-        ],
-    ]);
-
-    $exitCode = Artisan::call('db-inspector:analyze', [
-        '--no-report' => true,
-    ]);
-
-    $output = Artisan::output();
-
-    expect($exitCode)->toBe(0);
-    expect($output)->toMatch('/1\\.\\s+\\[ERROR\\].*2\\.\\s+\\[ERROR\\]/s');
-    expect($output)->toMatch('/Findings\s+: 2/');
-});
-
-it('renders nested issue payloads without crashing on arrays', function (): void {
-    bindFakeInspector([
-        'performance' => [
-            'Missing Foreign Key Indexes' => [
-                [
-                    'severity' => "\033[0;37;41m[ERROR]\033[0m",
-                    'issue' => "'users.email_id' column looks like FK but has no index",
-                    'recommendation' => 'Add an index to support the foreign key',
-                ],
-            ],
-        ],
+        fakeFinding(
+            'performance.missing-indexes',
+            'Missing Foreign Key Indexes',
+            'performance',
+            Severity::Error,
+            'users.email_id column looks like FK but has no index',
+            'users',
+            'email_id',
+        ),
+        fakeFinding(
+            'performance.missing-indexes',
+            'Missing Foreign Key Indexes',
+            'performance',
+            Severity::Warning,
+            'users.profile_id column looks like FK but has no index',
+            'users',
+            'profile_id',
+        ),
     ]);
 
     $exitCode = Artisan::call('db-inspector:analyze', [
@@ -173,6 +192,8 @@ it('renders nested issue payloads without crashing on arrays', function (): void
 
     expect($exitCode)->toBe(0);
     expect($output)->toContain('[ERROR]');
-    expect($output)->toContain('users.email_id');
-    expect($output)->not->toContain('TypeError');
+    expect($output)->toContain('[WARNING]');
+    expect($output)->toContain('1.');
+    expect($output)->toContain('2.');
+    expect($output)->toMatch('/Findings\s+: 2/');
 });

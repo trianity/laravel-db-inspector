@@ -6,8 +6,10 @@ namespace Trianity\LaravelDbInspector\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use Trianity\LaravelDbInspector\DatabaseInspectionResult;
+use Trianity\LaravelDbInspector\Analysis\AnalysisResult;
 use Trianity\LaravelDbInspector\DatabaseInspector;
+use Trianity\LaravelDbInspector\Reporting\ConsoleReportRenderer;
+use Trianity\LaravelDbInspector\Reporting\MarkdownReportRenderer;
 
 class DatabaseInspectorAnalyzeCommand extends Command
 {
@@ -34,23 +36,7 @@ class DatabaseInspectorAnalyzeCommand extends Command
     {
         $analyzer = app(DatabaseInspector::class);
         $result = $analyzer->inspect();
-        $info = $result->context();
-
-        $this->line('');
-        $this->info('Database Inspector Analysis Context');
-        $this->line(str_repeat('-', 40));
-
-        $this->line("Connection  : {$info['connection']}");
-        $this->line("Driver      : {$info['driver']}");
-        $this->line("Database    : {$info['database']}");
-        $this->line("Host        : {$info['host']}");
-        $this->line("Port        : {$info['port']}");
-        $this->line("Tables      : {$info['tables']}");
-        $this->line("Prefix      : {$info['prefix']}");
-        $this->line("Environment : {$info['environment']}");
-
-        $this->line(str_repeat('-', 40));
-        $this->line('');
+        $consoleRenderer = new ConsoleReportRenderer;
 
         $preflightError = $analyzer->getPreflightError();
 
@@ -63,20 +49,7 @@ class DatabaseInspectorAnalyzeCommand extends Command
         }
 
         $this->newLine();
-        $this->info('Starting Database Inspector database structure analysis...');
-
-        $issues = $result->groupedIssues();
-        $this->renderSummary($result);
-        $this->renderFindings($issues);
-
-        if ($result->technicalErrorCount() > 0) {
-            $this->newLine();
-            $this->error('Technical errors encountered during analysis:');
-
-            foreach ($result->technicalErrors() as $error) {
-                $this->line(sprintf('- %s: %s', $error['check'], $error['message']));
-            }
-        }
+        $this->line($consoleRenderer->render($result));
 
         $reportPath = null;
 
@@ -99,45 +72,11 @@ class DatabaseInspectorAnalyzeCommand extends Command
             $this->info('Markdown report written to: '.$reportPath);
         }
 
-        if ($result->technicalErrorCount() > 0) {
+        if (! $result->isSuccessful()) {
             return self::FAILURE;
         }
 
         return self::SUCCESS;
-    }
-
-    private function renderSummary(DatabaseInspectionResult $result): void
-    {
-        $this->line(sprintf('Checks executed: %d', $result->checksExecuted()));
-        $this->line(sprintf('Findings        : %d', $result->findingsCount()));
-        $this->line(sprintf('Technical errors: %d', $result->technicalErrorCount()));
-        $this->newLine();
-    }
-
-    /**
-     * @param  array<string, array<string, array<array-key, string>>>  $issues
-     */
-    private function renderFindings(array $issues): void
-    {
-        if ($issues === [] || $this->countFindings($issues) === 0) {
-            $this->info('No major database design issues found!');
-
-            return;
-        }
-
-        foreach ($issues as $category => $checks) {
-            $this->line(strtoupper(str_replace('_', ' ', $category)));
-
-            foreach ($checks as $checkName => $messages) {
-                $this->line('  '.$checkName);
-
-                foreach (array_values($messages) as $index => $issue) {
-                    $this->line(sprintf('    %3d. %s', $index + 1, $this->stripAnsi($issue)));
-                }
-            }
-
-            $this->newLine();
-        }
     }
 
     private function shouldSkipReport(): bool
@@ -149,7 +88,7 @@ class DatabaseInspectorAnalyzeCommand extends Command
         return false;
     }
 
-    private function writeReport(DatabaseInspectionResult $result): string
+    private function writeReport(AnalysisResult $result): string
     {
         $configuredPath = $this->option('output');
 
@@ -173,7 +112,7 @@ class DatabaseInspectorAnalyzeCommand extends Command
 
         File::ensureDirectoryExists(dirname($path));
 
-        $written = File::put($path, $result->toMarkdown());
+        $written = File::put($path, (new MarkdownReportRenderer)->render($result));
 
         if ($written === false) {
             throw new \RuntimeException('Unable to write report file.');
@@ -200,52 +139,5 @@ class DatabaseInspectorAnalyzeCommand extends Command
         return str_starts_with($path, '/')
             || str_starts_with($path, '\\')
             || preg_match('/^[A-Za-z]:[\\\\\\/]/', $path) === 1;
-    }
-
-    /**
-     * @param  array<string, array<string, array<array-key, string>>>  $issues
-     */
-    private function countFindings(array $issues): int
-    {
-        $count = 0;
-
-        foreach ($issues as $checks) {
-            foreach ($checks as $messages) {
-                $count += count($messages);
-            }
-        }
-
-        return $count;
-    }
-
-    private function stripAnsi(mixed $text): string
-    {
-        if (is_array($text)) {
-            $flattened = [];
-
-            array_walk_recursive($text, static function ($value) use (&$flattened): void {
-                if (is_string($value) || is_int($value) || is_float($value) || is_bool($value)) {
-                    $flattened[] = (string) $value;
-
-                    return;
-                }
-
-                if ($value instanceof \Stringable) {
-                    $flattened[] = (string) $value;
-                }
-            });
-
-            return $this->stripAnsi(implode(' ', $flattened));
-        }
-
-        if ($text instanceof \Stringable) {
-            return $this->stripAnsi((string) $text);
-        }
-
-        if (! is_string($text)) {
-            return '';
-        }
-
-        return preg_replace('/\x1B\[[0-?]*[ -\/]*[@-~]/', '', $text) ?? $text;
     }
 }

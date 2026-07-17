@@ -26,7 +26,7 @@ class MissingIndexesCheck extends BaseCheck
 
         foreach ($schema as $table => $data) {
 
-            $indexes = $data['indexes'] ?? [];
+            $indexes = $data['indexes'];
             $indexColumns = [];
 
             // ✅ Normalize index columns for MySQL + PostgreSQL
@@ -49,7 +49,7 @@ class MissingIndexesCheck extends BaseCheck
                 }
             }
 
-            foreach ($data['columns'] ?? [] as $column) {
+            foreach ($data['columns'] as $column) {
 
                 // ✅ Normalize column name
                 if (isset($column->name)) {
@@ -72,6 +72,6 @@ class MissingIndexesCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

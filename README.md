@@ -4,7 +4,7 @@ A development-focused database schema and design inspection tool for Laravel. It
 
 ## Status
 
-Laravel DB Inspector 1.x is the first stable release line, targeting PHP 8.4 and Laravel 13.
+Laravel DB Inspector 1.x targets PHP 8.4 and Laravel 13. The analysis pipeline now uses typed `AnalysisResult` and `Finding` DTOs across the command, Markdown report, and web UI.
 
 ## Supported versions
 
@@ -45,6 +45,8 @@ php artisan db-inspector:analyze
 ```
 
 The command prints an analysis context and then grouped findings. If no tables are discovered or a preflight check fails, the command exits with a non-zero status.
+
+Internally, each check returns structured `Finding` objects, and the command, Markdown report, and web view all consume the same `AnalysisResult` instance.
 
 By default, a Markdown report is written to the Laravel application root as `db-analyse.md`:
 

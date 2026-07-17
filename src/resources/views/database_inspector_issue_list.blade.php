@@ -2,179 +2,79 @@
 <html>
 <head>
     <title>Laravel DB Inspector Report</title>
-
-    <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        .issue-card {
-            transition: all 0.2s ease;
-        }
-
-        .issue-card:hover {
-            background-color: #fffdf5;
-        }
-
-        .note-box {
-            background: #f8fafc;
-            border-left: 4px solid #0d6efd;
-            padding: 7px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-        }
-
-        .card-body {
-            padding: 7px;
-        }
-        .nav-pills .nav-link.active {
-            background-color: #0d6efd;
-            font-weight: 600;
-        }
-        .tag-badge {
-            font-size: 0.85rem;
-            font-weight: 600;
-            padding: 5px 10px;
-            border-radius: 6px;
-            white-space: nowrap;
-        }
-        pre {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        .bg-purple {
-            background-color: #6f42c1 !important;
-        }
-    </style>
 </head>
-
 <body class="p-4 bg-light">
-
 <div class="container">
-
     <h2 class="mb-4 fw-bold">Database Inspector Analysis</h2>
 
     @if(!empty($preflightError))
-        <div class="alert alert-danger shadow-sm">
-            {{ $preflightError }}
-        </div>
-    @endif
+        <div class="alert alert-danger shadow-sm">{{ $preflightError }}</div>
+    @elseif($result === null)
+        <div class="alert alert-warning shadow-sm">No analysis result available.</div>
+    @elseif($result->findings === [])
+        <div class="alert alert-success shadow-sm">No issues found. Great job!</div>
+    @else
+        @php
+            $grouped = [];
+            foreach ($result->findings as $finding) {
+                $grouped[$finding->category][$finding->checkName][] = $finding;
+            }
+        @endphp
 
-    <?php
-        // Define tag colors **once** here — easy to maintain
-        $tagColors = [
-            'AUDIT'            => 'bg-warning text-dark',
-            'WARNING'          => 'bg-warning text-dark',
-            'PERF'             => 'bg-warning text-dark',
-            'PERFORMANCE'      => 'bg-warning text-dark',
-            'DATA INTEGRITY'   => 'bg-warning text-dark',
-            'ORPHAN RISK'      => 'bg-warning text-dark',
-            'DATA QUALITY'     => 'bg-warning text-dark',
-            'BEST PRACTICE'    => 'bg-info text-white',
-            'NAMING'           => 'bg-info text-white',
-            'DATA TYPE'        => 'bg-info text-white',
-            'NULLABLE'         => 'bg-info text-white',
-            'PIVOT'            => 'bg-info text-white',
-            'PIVOT DESIGN'     => 'bg-info text-white',
-            'ERROR'            => 'bg-danger text-white',
-            'HIGH RISK'        => 'bg-danger text-white',
-            'UNIQUE VIOLATION' => 'bg-danger text-white',
-            'ARCH RISK'        => 'bg-danger text-white',
-            'DOMAIN MIX'       => 'bg-purple text-white',
-            'ARCH WARNING'     => 'bg-warning text-dark',
-            'ENUM OVERUSE'     => 'bg-warning text-dark',
-            'ENUM SIZE'        => 'bg-warning text-dark',
-            'PERF RISK'        => 'bg-warning text-dark',
-            'SIZE ALERT'       => 'bg-warning text-dark',
-            'GROWTH RISK'      => 'bg-warning text-dark',
-            // ← Add new tags here in the future
-        ];
-    ?>
+        @foreach($grouped as $category => $checks)
+            @php
+                $categoryCount = 0;
+                foreach ($checks as $findings) {
+                    $categoryCount += count($findings);
+                }
+            @endphp
 
-    @if(empty($preflightError) && count($groupedIssues) > 0)
-        <div class="row">
-            <!-- Left Side Vertical Tabs -->
-            <div class="col-md-3">
-                <ul class="nav nav-pills flex-column" id="issueTabs" role="tablist">
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header">
+                    <strong>{{ ucfirst(str_replace('_', ' ', $category)) }}</strong>
+                    <span class="badge bg-danger">{{ $categoryCount }}</span>
+                </div>
+                <div class="card-body">
+                    @foreach($checks as $checkName => $findings)
+                        <div class="mb-3">
+                            <h5 class="mb-2">{{ $checkName }} ({{ count($findings) }})</h5>
 
-                    @foreach($groupedIssues as $category => $items)
-                        <li class="nav-item mb-2" role="presentation">
-                            <button class="nav-link {{ $loop->first ? 'active' : '' }} text-start w-100"
-                                    data-bs-toggle="pill"
-                                    data-bs-target="#content-{{ $loop->index }}"
-                                    type="button">
+                            @foreach($findings as $finding)
+                                <div class="border rounded p-3 mb-2 bg-white">
+                                    <div><strong>Rule:</strong> {{ $finding->ruleId }}</div>
+                                    <div><strong>Severity:</strong> {{ $finding->severity->value }}</div>
+                                    <div><strong>Message:</strong> {{ $finding->message }}</div>
 
-                                {{ ucfirst(str_replace('_',' ',$category)) }}
-                                <span class="badge bg-danger float-end">
-                                    {{ collect($items)->flatten()->count() }}
-                                </span>
-                            </button>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
+                                    @if($finding->table !== null)
+                                        <div><strong>Table:</strong> {{ $finding->table }}</div>
+                                    @endif
 
-            <!-- Right Side Content -->
-            <div class="col-md-9">
-                <div class="tab-content border bg-white p-3 rounded shadow-sm">
+                                    @if($finding->column !== null)
+                                        <div><strong>Column:</strong> {{ $finding->column }}</div>
+                                    @endif
 
-                    @foreach($groupedIssues as $category => $checks)
-                        <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
-                             id="content-{{ $loop->index }}">
+                                    @if($finding->recommendation !== null)
+                                        <div><strong>Recommendation:</strong> {{ $finding->recommendation }}</div>
+                                    @endif
 
-                            @foreach($checks as $checkName => $messages)
-
-                                <div class="card mb-3 shadow-sm issue-card">
-
-                                    <div class="card-header bg-white">
-                                        <button class="btn btn-link text-decoration-none w-100 text-start d-flex justify-content-between align-items-center"
-                                                data-bs-toggle="collapse"
-                                                data-bs-target="#collapse-{{ $category }}-{{ $loop->index }}">
-
-                                            <span>
-                                                <strong>{{ ucfirst(str_replace('_',' ', $checkName)) }}</strong>
-                                                ({{ count($messages) }})
-                                            </span>
-
-                                            <i class="bi bi-chevron-down toggle-icon"></i>
-                                        </button>
-                                    </div>
-
-                                    <div id="collapse-{{ $category }}-{{ $loop->index }}"
-                                         class="collapse {{ $loop->first ? 'show' : '' }}">
-
-                                        <div class="card-body bg-light">
-                                            @foreach($messages as $issueMessage)
-                                                <div class="mb-3 p-3 bg-white border rounded">
-                                                    @php
-                                                        $clean = preg_replace('/\x1B\[[0-?]*[ -\/]*[@-~]/', '', $issueMessage);
-
-                                                        $clean = preg_replace_callback('/\[([A-Z\s\/]+)\]/', function ($matches) use ($tagColors) {
-                                                            $tag = trim($matches[1]);
-                                                            $class = $tagColors[$tag] ?? 'bg-secondary text-white';
-
-                                                            return '<span class="tag-badge badge ' . $class . '">[' . $tag . ']</span>';
-                                                        }, $clean);
-                                                    @endphp
-                                                    <pre class="mb-0 text-muted">{!! $clean !!}</pre>
-                                                </div>
-                                            @endforeach
+                                    @if($finding->metadata !== [])
+                                        <div><strong>Metadata:</strong>
+                                            <ul class="mb-0">
+                                                @foreach($finding->metadata as $key => $value)
+                                                    <li>{{ $key }}: {{ $value }}</li>
+                                                @endforeach
+                                            </ul>
                                         </div>
-                                    </div>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>
                     @endforeach
                 </div>
             </div>
-        </div>
-    @elseif(empty($preflightError))
-        <div class="alert alert-success shadow-sm">
-            No issues found. Great job!
-        </div>
+        @endforeach
     @endif
-
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

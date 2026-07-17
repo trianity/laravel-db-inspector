@@ -54,6 +54,6 @@ class CascadingActionsCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

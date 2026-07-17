@@ -26,7 +26,7 @@ class UniqueConstraintViolationsCheck extends BaseCheck
 
         foreach ($schema as $table => $data) {
 
-            $columns = array_column($data['columns'] ?? [], 'Field');
+            $columns = array_column($data['columns'], 'Field');
 
             foreach ($uniqueCandidates as $field) {
 
@@ -50,6 +50,6 @@ class UniqueConstraintViolationsCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

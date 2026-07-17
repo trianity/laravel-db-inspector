@@ -24,7 +24,7 @@ class MissingSoftDeletesCheck extends BaseCheck
 
         foreach ($schema as $table => $data) {
 
-            $columns = array_column($data['columns'] ?? [], 'Field');
+            $columns = array_column($data['columns'], 'Field');
 
             if (
                 ! in_array('deleted_at', $columns)
@@ -34,6 +34,6 @@ class MissingSoftDeletesCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

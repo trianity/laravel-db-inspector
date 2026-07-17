@@ -26,7 +26,7 @@ class RepeatedCommonFieldsCheck extends BaseCheck
 
         foreach ($schema as $table => $data) {
 
-            $columns = array_column($data['columns'] ?? [], 'Field');
+            $columns = array_column($data['columns'], 'Field');
 
             foreach ($commonFields as $field) {
 
@@ -38,6 +38,6 @@ class RepeatedCommonFieldsCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

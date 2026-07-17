@@ -25,12 +25,12 @@ class StatusIndexCheck extends BaseCheck
         foreach ($schema as $table => $data) {
 
             $columns = [];
-            foreach ($data['columns'] ?? [] as $column) {
+            foreach ($data['columns'] as $column) {
                 $columns[] = $column->Field ?? $column->column_name ?? $column->name ?? null;
             }
 
             $indexes = [];
-            foreach ($data['indexes'] ?? [] as $index) {
+            foreach ($data['indexes'] as $index) {
                 $indexes[] = $index->Column_name ?? $index->column_name ?? null;
             }
 
@@ -53,6 +53,6 @@ class StatusIndexCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

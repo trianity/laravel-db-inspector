@@ -24,7 +24,7 @@ class MissingTimestampsCheck extends BaseCheck
 
         foreach ($schema as $table => $data) {
 
-            $columns = array_column($data['columns'] ?? [], 'Field');
+            $columns = array_column($data['columns'], 'Field');
 
             if (
                 ! in_array('created_at', $columns) ||
@@ -35,6 +35,6 @@ class MissingTimestampsCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }

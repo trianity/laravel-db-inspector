@@ -23,7 +23,7 @@ class CompositeIndexRecommendationCheck extends BaseCheck
         foreach ($schema as $table => $data) {
             $columns = array_map(
                 fn ($col) => strtolower((string) ($col->Field ?? '')),
-                $data['columns'] ?? []
+                $data['columns']
             );
 
             if (! in_array('user_id', $columns, true)) {
@@ -43,7 +43,7 @@ class CompositeIndexRecommendationCheck extends BaseCheck
             }
 
             $indexesByName = [];
-            foreach ($data['indexes'] ?? [] as $index) {
+            foreach ($data['indexes'] as $index) {
                 $keyName = (string) ($index->Key_name ?? '');
                 $seq = (int) ($index->Seq_in_index ?? 1);
                 $column = strtolower((string) ($index->Column_name ?? ''));
@@ -72,6 +72,6 @@ class CompositeIndexRecommendationCheck extends BaseCheck
             }
         }
 
-        return $issues;
+        return $this->legacyFindings($issues);
     }
 }
