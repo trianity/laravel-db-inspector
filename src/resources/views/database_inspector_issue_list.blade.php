@@ -143,19 +143,18 @@
                                          class="collapse {{ $loop->first ? 'show' : '' }}">
 
                                         <div class="card-body bg-light">
-                                            @foreach($messages as $message)
+                                            @foreach($messages as $issueMessage)
                                                 <div class="mb-3 p-3 bg-white border rounded">
-                                                    <?php
-                                                        // 1. Remove ANSI codes
-                                                        $clean = preg_replace('/\x1B\[[0-?]*[ -\/]*[@-~]/', '', $message);
+                                                    @php
+                                                        $clean = preg_replace('/\x1B\[[0-?]*[ -\/]*[@-~]/', '', $issueMessage);
 
-                                                        // 2. Replace [TAG] with colored badge using the global $tagColors
                                                         $clean = preg_replace_callback('/\[([A-Z\s\/]+)\]/', function ($matches) use ($tagColors) {
                                                             $tag = trim($matches[1]);
                                                             $class = $tagColors[$tag] ?? 'bg-secondary text-white';
+
                                                             return '<span class="tag-badge badge ' . $class . '">[' . $tag . ']</span>';
                                                         }, $clean);
-                                                    ?>
+                                                    @endphp
                                                     <pre class="mb-0 text-muted">{!! $clean !!}</pre>
                                                 </div>
                                             @endforeach

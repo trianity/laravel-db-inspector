@@ -83,7 +83,7 @@ class EnumOveruseCheck extends BaseCheck
                 // ✅ MySQL ENUM values extraction
                 if (isset($raw->Type)) {
                     preg_match_all("/'([^']+)'/", $raw->Type, $matches);
-                    $valuesCount = count($matches[1] ?? []);
+                    $valuesCount = count($matches[1]);
                 }
 
                 // ✅ PostgreSQL ENUM values extraction

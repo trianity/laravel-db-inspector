@@ -77,8 +77,22 @@
             "@php vendor/bin/testbench serve --ansi"
         ],
         "test": [
-            "@clear",
-            "@php vendor/bin/pest"
+            "pest"
+        ],
+        "test:unit": [
+            "pest --testsuite=Unit"
+        ],
+        "test:feature": [
+            "pest --testsuite=Feature"
+        ],
+        "analyse": [
+            "phpstan analyse --debug"
+        ],
+        "format": [
+            "pint"
+        ],
+        "format:test": [
+            "pint --test"
         ]
     }
 }
