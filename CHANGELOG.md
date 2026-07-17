@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-17
+
 ### Added
 
 - `AnalysisConnection` for centralized analysis connection handling.
@@ -95,3 +97,6 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Initial release of orphan risk check.
+
+[Unreleased]: https://github.com/trianity/laravel-db-inspector/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/trianity/laravel-db-inspector/releases/tag/v1.0.0

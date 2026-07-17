@@ -2,11 +2,16 @@
 
 A development-focused database schema and design inspection tool for Laravel. It analyzes the actual database structure, is production-safe by default, and keeps the web interface disabled unless you explicitly enable it.
 
-> This package is under active development and has not yet reached a stable release.
-
 ## Status
 
-The package is currently under active redesign and has not reached its first stable release.
+Laravel DB Inspector 1.x is the first stable release line, targeting PHP 8.4 and Laravel 13.
+
+## Supported versions
+
+| Version | Supported |
+|---------|-----------|
+| 1.x     | Yes       |
+| < 1.0   | No        |
 
 ## Requirements
 
