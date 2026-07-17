@@ -8,7 +8,7 @@ class DatabaseInspectionResult
 {
     /**
      * @param  array{connection: string, driver: string, database: string, host: string, port: string|int|null, tables: int, prefix: string, environment: string}  $context
-     * @param  array<string, array<string, array<int, string>>>  $groupedIssues
+     * @param  array<string, array<string, array<array-key, string>>>  $groupedIssues
      * @param  array<int, array{check: string, message: string}>  $technicalErrors
      */
     public function __construct(
@@ -27,7 +27,7 @@ class DatabaseInspectionResult
     }
 
     /**
-     * @return array<string, array<string, array<int, string>>>
+     * @return array<string, array<string, array<array-key, string>>>
      */
     public function groupedIssues(): array
     {
@@ -166,7 +166,7 @@ class DatabaseInspectionResult
     }
 
     /**
-     * @param  array<int, string>  $messages
+     * @param  array<array-key, string>  $messages
      * @return array<string, array<int, array{severity: string, column: string|null, issue: string, recommendation: string|null}>>
      */
     private function groupMessagesByTarget(array $messages): array

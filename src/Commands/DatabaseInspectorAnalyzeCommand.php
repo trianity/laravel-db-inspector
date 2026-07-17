@@ -115,7 +115,7 @@ class DatabaseInspectorAnalyzeCommand extends Command
     }
 
     /**
-     * @param  array<string, array<string, array<int, string>>>  $issues
+     * @param  array<string, array<string, array<array-key, string>>>  $issues
      */
     private function renderFindings(array $issues): void
     {
@@ -131,7 +131,7 @@ class DatabaseInspectorAnalyzeCommand extends Command
             foreach ($checks as $checkName => $messages) {
                 $this->line('  '.$checkName);
 
-                foreach ($messages as $index => $issue) {
+                foreach (array_values($messages) as $index => $issue) {
                     $this->line(sprintf('    %3d. %s', $index + 1, $this->stripAnsi($issue)));
                 }
             }
@@ -203,7 +203,7 @@ class DatabaseInspectorAnalyzeCommand extends Command
     }
 
     /**
-     * @param  array<string, array<string, array<int, string>>>  $issues
+     * @param  array<string, array<string, array<array-key, string>>>  $issues
      */
     private function countFindings(array $issues): int
     {

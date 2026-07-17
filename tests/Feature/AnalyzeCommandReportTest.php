@@ -130,3 +130,24 @@ it('allows --output to override a disabled report config', function (): void {
         File::deleteDirectory(dirname($reportPath));
     }
 });
+
+it('renders associative issue lists without failing on string keys', function (): void {
+    bindFakeInspector([
+        'performance' => [
+            'Missing Foreign Key Indexes' => [
+                'missing-index' => "\033[0;37;41m[ERROR]\033[0m 'users.email_id' column looks like FK but has no index",
+                'nullable-column' => "\033[0;37;41m[ERROR]\033[0m 'users.profile_id' column is nullable",
+            ],
+        ],
+    ]);
+
+    $exitCode = Artisan::call('db-inspector:analyze', [
+        '--no-report' => true,
+    ]);
+
+    $output = Artisan::output();
+
+    expect($exitCode)->toBe(0);
+    expect($output)->toMatch('/1\\.\\s+\\[ERROR\\].*2\\.\\s+\\[ERROR\\]/s');
+    expect($output)->toMatch('/Findings\s+: 2/');
+});
