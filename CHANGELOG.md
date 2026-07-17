@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-17
+
+### Added
+
+- Automatic Markdown report generation for `db-inspector:analyze`.
+- Configurable report enablement and path handling.
+- `--output` and `--no-report` Artisan options.
+- Structured inspection results shared between the command, report writer, and web view.
+- Coverage for report path resolution and Markdown rendering.
+
+### Changed
+
+- The console command now uses the structured inspection result instead of flattening all findings immediately.
+- The default report path resolves to `base_path('db-analyse.md')` through relative-path handling.
+- Console output was kept usable while the full analysis now lands in a Markdown file as well.
+
+### Fixed
+
+- Report writing no longer depends on the process working directory.
+- Console and web output now consume the same grouped inspection data.
+
+### Security
+
+- Markdown reports may contain sensitive schema information and are written only when explicitly enabled by config or command options.
+
 ## [1.0.0] - 2026-07-17
 
 ### Added

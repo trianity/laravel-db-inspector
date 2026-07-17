@@ -86,6 +86,51 @@ class DatabaseInspector
         return null;
     }
 
+    public function inspect(): DatabaseInspectionResult
+    {
+        $context = $this->getDatabaseInfo();
+
+        if ($this->getPreflightError()) {
+            return new DatabaseInspectionResult($context, [], [], count($this->checks));
+        }
+
+        $schema = $this->extractSchema();
+        $grouped = [
+            'structure' => [],
+            'integrity' => [],
+            'performance' => [],
+            'architecture' => [],
+        ];
+        $technicalErrors = [];
+
+        foreach ($this->checks as $check) {
+            $category = $check->category();
+            $checkName = $check->name();
+
+            try {
+                $issues = array_filter($check->run($schema));
+            } catch (\Throwable $throwable) {
+                $technicalErrors[] = [
+                    'check' => $checkName,
+                    'message' => $throwable->getMessage(),
+                ];
+
+                continue;
+            }
+
+            if ($issues !== []) {
+                $grouped[$category][$checkName] = $issues;
+            }
+        }
+
+        return new DatabaseInspectionResult(
+            $context,
+            $grouped,
+            $technicalErrors,
+            count($this->checks)
+        );
+    }
+
     protected function resolveMigrationTableName(): string
     {
         $config = config('database.migrations', 'migrations');
@@ -127,33 +172,11 @@ class DatabaseInspector
     }
 
     /**
-     * @return array<string, array{name: string, physical_name: string, columns: array<int, object>, indexes: array<int, object>}>
+     * @return array<string, array<int, string>>
      */
     public function analyze(): array
     {
-        if ($this->getPreflightError()) {
-            return [];
-        }
-
-        $schema = $this->extractSchema();
-
-        $grouped = [
-            'structure' => [],
-            'integrity' => [],
-            'performance' => [],
-            'architecture' => [],
-        ];
-
-        foreach ($this->checks as $check) {
-            $category = $check->category();
-            $issues = array_filter($check->run($schema));
-
-            if (! empty($issues)) {
-                $grouped[$category] = array_merge($grouped[$category], $issues);
-            }
-        }
-
-        return $grouped;
+        return $this->inspect()->flatIssues();
     }
 
     /**
@@ -168,10 +191,11 @@ class DatabaseInspector
 
         foreach ($this->analysisConnection->physicalTableNames() as $physicalName) {
             $logicalName = $this->tableNameNormalizer->toLogicalName($physicalName, $prefix);
+            $wrappedPhysicalName = $this->analysisConnection->wrapIdentifier($physicalName);
 
             if (DatabaseDriver::isMySqlCompatible($driver)) {
-                $columnsRaw = $connection->select("SHOW FULL COLUMNS FROM `{$physicalName}`");
-                $indexes = $connection->select("SHOW INDEX FROM `{$physicalName}`");
+                $columnsRaw = $connection->select("SHOW FULL COLUMNS FROM {$wrappedPhysicalName}");
+                $indexes = $connection->select("SHOW INDEX FROM {$wrappedPhysicalName}");
             } elseif (DatabaseDriver::isPostgreSql($driver)) {
                 $columnsRaw = $connection->select('
                     SELECT column_name, data_type, is_nullable

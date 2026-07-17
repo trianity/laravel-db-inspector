@@ -62,10 +62,12 @@ class NullValueRatioCheck extends BaseCheck
                 }
 
                 // ✅ Optimized: single query instead of 2
+                $wrappedField = $this->wrapIdentifier($field);
+
                 $result = $this->table($table)
                     ->selectRaw("
                         COUNT(*) as total,
-                        COUNT({$field}) as non_null
+                        COUNT({$wrappedField}) as non_null
                     ")
                     ->first();
 

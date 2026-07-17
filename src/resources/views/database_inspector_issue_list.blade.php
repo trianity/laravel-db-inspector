@@ -105,7 +105,7 @@
 
                                 {{ ucfirst(str_replace('_',' ',$category)) }}
                                 <span class="badge bg-danger float-end">
-                                    {{ count($items) }}
+                                    {{ collect($items)->flatten()->count() }}
                                 </span>
                             </button>
                         </li>

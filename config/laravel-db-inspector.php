@@ -23,6 +23,11 @@ return [
         ],
     ],
 
+    'report' => [
+        'enabled' => env('DB_INSPECTOR_REPORT_ENABLED', true),
+        'path' => env('DB_INSPECTOR_REPORT_PATH', 'db-analyse.md'),
+    ],
+
     // Maximum number of columns allowed in a table before flagging it as wide.
     'max_columns' => 25,
 

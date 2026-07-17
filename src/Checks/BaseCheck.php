@@ -26,6 +26,16 @@ abstract class BaseCheck implements CheckInterface
         return $this->analysisConnection->connection();
     }
 
+    protected function wrapIdentifier(string $identifier): string
+    {
+        return $this->analysisConnection->wrapIdentifier($identifier);
+    }
+
+    protected function wrapTable(string $table): string
+    {
+        return $this->analysisConnection->wrapTable($table);
+    }
+
     protected function table(string $logicalName): Builder
     {
         return $this->connection()->table($logicalName);

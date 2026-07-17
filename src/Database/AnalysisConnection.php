@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Trianity\LaravelDbInspector\Database;
 
 use Illuminate\Database\Connection;
+use Illuminate\Database\Query\Grammars\Grammar;
 use Illuminate\Support\Facades\DB;
 
 class AnalysisConnection
@@ -30,6 +31,21 @@ class AnalysisConnection
         }
 
         return $this->connection;
+    }
+
+    public function queryGrammar(): Grammar
+    {
+        return $this->connection()->getQueryGrammar();
+    }
+
+    public function wrapIdentifier(string $identifier): string
+    {
+        return $this->queryGrammar()->wrap($identifier);
+    }
+
+    public function wrapTable(string $table): string
+    {
+        return $this->queryGrammar()->wrapTable($table);
     }
 
     public function driver(): string

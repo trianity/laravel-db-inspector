@@ -12,11 +12,11 @@ class DatabaseInspectorController extends Controller
 {
     public function index()
     {
-        $analyzer = new DatabaseInspector;
+        $analyzer = app(DatabaseInspector::class);
         $preflightError = $analyzer->getPreflightError();
 
         $groupedIssues = $preflightError === null
-            ? $analyzer->analyze()
+            ? $analyzer->inspect()->groupedIssues()
             : [
                 'structure' => [],
                 'integrity' => [],

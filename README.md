@@ -46,6 +46,19 @@ php artisan db-inspector:analyze
 
 The command prints an analysis context and then grouped findings. If no tables are discovered or a preflight check fails, the command exits with a non-zero status.
 
+By default, a Markdown report is written to the Laravel application root as `db-analyse.md`:
+
+```bash
+php artisan db-inspector:analyze
+```
+
+You can override the path or disable the report:
+
+```bash
+php artisan db-inspector:analyze --output=reports/db-analyse.md
+php artisan db-inspector:analyze --no-report
+```
+
 ## Configuration
 
 Publish the configuration file with:
@@ -60,8 +73,18 @@ Available environment variables:
 - `DB_INSPECTOR_CONNECTION`
 - `DB_INSPECTOR_WEB_ENABLED`
 - `DB_INSPECTOR_WEB_PREFIX`
+- `DB_INSPECTOR_REPORT_ENABLED`
+- `DB_INSPECTOR_REPORT_PATH`
 
 The default configuration lives in `config/laravel-db-inspector.php`, and the web route is only loaded when both the package and the web mode are explicitly enabled.
+
+Report path rules:
+
+- absolute paths are used as-is;
+- relative paths are resolved against the host Laravel application's `base_path()`;
+- `--output` overrides the config value;
+- `--no-report` skips file writing entirely;
+- `report.enabled=false` disables automatic writing unless `--output` is passed explicitly.
 
 ## Web interface
 

@@ -25,6 +25,8 @@ This package can process or display sensitive database schema information, inclu
 
 Do not publish screenshots or analysis output without checking whether they expose sensitive information.
 
+Markdown reports written by `db-inspector:analyze` can contain the same schema details as the console output. Treat `db-analyse.md` and any custom report path as sensitive artifacts.
+
 ## Web interface safety
 
 - The web interface is disabled by default.

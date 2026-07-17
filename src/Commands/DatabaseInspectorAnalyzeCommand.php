@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Trianity\LaravelDbInspector\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
+use Trianity\LaravelDbInspector\DatabaseInspectionResult;
 use Trianity\LaravelDbInspector\DatabaseInspector;
 
 class DatabaseInspectorAnalyzeCommand extends Command
@@ -14,7 +16,9 @@ class DatabaseInspectorAnalyzeCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'db-inspector:analyze';
+    protected $signature = 'db-inspector:analyze
+    {--output= : Markdown report path, relative to the Laravel application root unless absolute}
+    {--no-report : Do not write a Markdown report}';
 
     /**
      * The console command description.
@@ -26,10 +30,11 @@ class DatabaseInspectorAnalyzeCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
-        $analyzer = new DatabaseInspector;
-        $info = $analyzer->getDatabaseInfo();
+        $analyzer = app(DatabaseInspector::class);
+        $result = $analyzer->inspect();
+        $info = $result->context();
 
         $this->line('');
         $this->info('Database Inspector Analysis Context');
@@ -60,63 +65,161 @@ class DatabaseInspectorAnalyzeCommand extends Command
         $this->newLine();
         $this->info('Starting Database Inspector database structure analysis...');
 
-        $steps = 12;
-        $bar = $this->output->createProgressBar($steps);
-        $bar->setFormat('verbose');
+        $issues = $result->groupedIssues();
+        $this->renderSummary($result);
+        $this->renderFindings($issues);
 
-        $bar->start();
-        $bar->setMessage('Collecting table metadata...', 'status');
+        if ($result->technicalErrorCount() > 0) {
+            $this->newLine();
+            $this->error('Technical errors encountered during analysis:');
 
-        $bar->advance(1);
-        sleep(1);
-        $bar->setMessage('Analyzing table structures...', 'status');
-        $bar->advance(1);
-        sleep(1);
-        $bar->setMessage('Checking column types & nullability...', 'status');
-        $bar->advance(1);
-        sleep(1);
-        $bar->setMessage('Collecting indexes & constraints...', 'status');
-
-        // Do the actual heavy analysis
-        $issues = $analyzer->analyze();
-
-        for ($i = 4; $i <= 10; $i++) {
-            $bar->advance(1);
-            usleep(400_000);
-            $bar->setMessage("Processing issue category $i/10...", 'status');
+            foreach ($result->technicalErrors() as $error) {
+                $this->line(sprintf('- %s: %s', $error['check'], $error['message']));
+            }
         }
 
-        $bar->advance(2);
-        $bar->setMessage('Finalizing report...', 'status');
-        usleep(600_000);
+        $reportPath = null;
 
-        $bar->finish();
-        $this->newLine(2);
+        if (! $this->shouldSkipReport()) {
+            try {
+                $reportPath = $this->writeReport($result);
+            } catch (\InvalidArgumentException $exception) {
+                $this->error($exception->getMessage());
 
-        if (empty($issues)) {
+                return self::FAILURE;
+            } catch (\Throwable $exception) {
+                $this->error('Failed to write Markdown report: '.$exception->getMessage());
+
+                return self::FAILURE;
+            }
+        }
+
+        if ($reportPath !== null && $reportPath !== '') {
+            $this->newLine();
+            $this->info('Markdown report written to: '.$reportPath);
+        }
+
+        if ($result->technicalErrorCount() > 0) {
+            return self::FAILURE;
+        }
+
+        return self::SUCCESS;
+    }
+
+    private function renderSummary(DatabaseInspectionResult $result): void
+    {
+        $this->line(sprintf('Checks executed: %d', $result->checksExecuted()));
+        $this->line(sprintf('Findings        : %d', $result->findingsCount()));
+        $this->line(sprintf('Technical errors: %d', $result->technicalErrorCount()));
+        $this->newLine();
+    }
+
+    /**
+     * @param  array<string, array<string, array<int, string>>>  $issues
+     */
+    private function renderFindings(array $issues): void
+    {
+        if ($issues === [] || $this->countFindings($issues) === 0) {
             $this->info('No major database design issues found!');
 
             return;
         }
 
-        $flatIssues = [];
-        foreach ($issues as $category) {
-            foreach ($category as $subCategory) {
-                foreach ($subCategory as $issue) {
-                    $flatIssues[] = $issue;
+        foreach ($issues as $category => $checks) {
+            $this->line(strtoupper(str_replace('_', ' ', $category)));
+
+            foreach ($checks as $checkName => $messages) {
+                $this->line('  '.$checkName);
+
+                foreach ($messages as $index => $issue) {
+                    $this->line(sprintf('    %3d. %s', $index + 1, $this->stripAnsi($issue)));
                 }
+            }
+
+            $this->newLine();
+        }
+    }
+
+    private function shouldSkipReport(): bool
+    {
+        if ($this->option('no-report')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function writeReport(DatabaseInspectionResult $result): string
+    {
+        $configuredPath = $this->option('output');
+
+        if (is_string($configuredPath) && trim($configuredPath) !== '') {
+            $path = $this->resolveReportPath($configuredPath);
+        } elseif (is_string($configuredPath) && trim($configuredPath) === '') {
+            throw new \InvalidArgumentException('Report path cannot be empty.');
+        } else {
+            $enabled = (bool) config('laravel-db-inspector.report.enabled', true);
+
+            if (! $enabled && $configuredPath === null) {
+                return '';
+            }
+
+            $path = $this->resolveReportPath((string) config('laravel-db-inspector.report.path', 'db-analyse.md'));
+        }
+
+        if ($path === '') {
+            return '';
+        }
+
+        File::ensureDirectoryExists(dirname($path));
+
+        $written = File::put($path, $result->toMarkdown());
+
+        if ($written === false) {
+            throw new \RuntimeException('Unable to write report file.');
+        }
+
+        return $path;
+    }
+
+    private function resolveReportPath(string $path): string
+    {
+        $path = trim($path);
+
+        if ($path === '') {
+            throw new \InvalidArgumentException('Report path cannot be empty.');
+        }
+
+        return $this->isAbsolutePath($path)
+            ? $path
+            : base_path($path);
+    }
+
+    private function isAbsolutePath(string $path): bool
+    {
+        return str_starts_with($path, '/')
+            || str_starts_with($path, '\\')
+            || preg_match('/^[A-Za-z]:[\\\\\\/]/', $path) === 1;
+    }
+
+    /**
+     * @param  array<string, array<string, array<int, string>>>  $issues
+     */
+    private function countFindings(array $issues): int
+    {
+        $count = 0;
+
+        foreach ($issues as $checks) {
+            foreach ($checks as $messages) {
+                $count += count($messages);
             }
         }
 
-        $count = count($flatIssues);
-        $this->error("  Found $count design issue".($count === 1 ? '' : 's').'!');
-        $this->newLine();
+        return $count;
+    }
 
-        foreach ($flatIssues as $i => $issue) {
-            $this->line(sprintf('  %3d. %s', $i + 1, $issue));
-        }
-
-        $this->newLine();
-        $this->info("Analysis completed in {$bar->getProgressPercent()}% of estimated time.");
+    private function stripAnsi(string $text): string
+    {
+        return preg_replace('/\x1B\[[0-?]*[ -\/]*[@-~]/', '', $text) ?? $text;
     }
 }
