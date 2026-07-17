@@ -151,3 +151,28 @@ it('renders associative issue lists without failing on string keys', function ()
     expect($output)->toMatch('/1\\.\\s+\\[ERROR\\].*2\\.\\s+\\[ERROR\\]/s');
     expect($output)->toMatch('/Findings\s+: 2/');
 });
+
+it('renders nested issue payloads without crashing on arrays', function (): void {
+    bindFakeInspector([
+        'performance' => [
+            'Missing Foreign Key Indexes' => [
+                [
+                    'severity' => "\033[0;37;41m[ERROR]\033[0m",
+                    'issue' => "'users.email_id' column looks like FK but has no index",
+                    'recommendation' => 'Add an index to support the foreign key',
+                ],
+            ],
+        ],
+    ]);
+
+    $exitCode = Artisan::call('db-inspector:analyze', [
+        '--no-report' => true,
+    ]);
+
+    $output = Artisan::output();
+
+    expect($exitCode)->toBe(0);
+    expect($output)->toContain('[ERROR]');
+    expect($output)->toContain('users.email_id');
+    expect($output)->not->toContain('TypeError');
+});

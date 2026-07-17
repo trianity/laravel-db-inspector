@@ -44,3 +44,41 @@ it('renders a clean markdown report from structured findings', function (): void
         ->toContain('column looks like FK but has no index')
         ->not->toContain("\033[0;37;41m");
 });
+
+it('sanitizes nested array findings when generating markdown', function (): void {
+    $result = new DatabaseInspectionResult(
+        [
+            'connection' => 'crm',
+            'driver' => 'mariadb',
+            'database' => 'kaszanap_laracrmdb',
+            'host' => 'localhost',
+            'port' => 3306,
+            'tables' => 77,
+            'prefix' => 'nkt8_',
+            'environment' => 'local',
+        ],
+        [
+            'performance' => [
+                'Missing Foreign Key Indexes' => [
+                    [
+                        'severity' => "\033[0;37;41m[ERROR]\033[0m",
+                        'issue' => "'users.email_id' column looks like FK but has no index",
+                        'recommendation' => 'Add an index to support the foreign key',
+                    ],
+                ],
+            ],
+        ],
+        [],
+        12,
+    );
+
+    $markdown = $result->toMarkdown('2026-07-17 18:30:00');
+
+    expect($markdown)
+        ->toContain('### Performance')
+        ->toContain('#### Missing Foreign Key Indexes')
+        ->toContain('- **Severity:** error')
+        ->toContain('users.email_id')
+        ->toContain('Add an index to support the foreign key')
+        ->not->toContain("\033[0;37;41m");
+});

@@ -191,8 +191,34 @@ class DatabaseInspectionResult
         return $grouped;
     }
 
-    private function sanitizeText(string $text): string
+    private function sanitizeText(mixed $text): string
     {
+        if (is_array($text)) {
+            $flattened = [];
+
+            array_walk_recursive($text, static function ($value) use (&$flattened): void {
+                if (is_string($value) || is_int($value) || is_float($value) || is_bool($value)) {
+                    $flattened[] = (string) $value;
+
+                    return;
+                }
+
+                if ($value instanceof \Stringable) {
+                    $flattened[] = (string) $value;
+                }
+            });
+
+            return $this->sanitizeText(implode(' ', $flattened));
+        }
+
+        if ($text instanceof \Stringable) {
+            return $this->sanitizeText((string) $text);
+        }
+
+        if (! is_string($text)) {
+            return '';
+        }
+
         return preg_replace('/\x1B\[[0-?]*[ -\/]*[@-~]/', '', $text) ?? $text;
     }
 
