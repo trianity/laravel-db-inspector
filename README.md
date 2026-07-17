@@ -1,17 +1,30 @@
 # Laravel DB Inspector
 
-A development-focused database schema and design inspection tool for Laravel. It analyzes the actual database structure, is production-safe by default, and keeps the web interface disabled unless you explicitly enable it.
+A development-focused database schema and design inspection tool for Laravel. It analyzes the actual database structure and database statistics, and keeps the web interface disabled unless you explicitly enable it.
 
-## Status
+> [!WARNING]
+> Laravel DB Inspector is currently experimental.
+>
+> Version `0.x` is intended for evaluation and development use. The package can
+> complete full database analysis and generate structured reports, but several
+> rules currently rely on schema-only heuristics and may produce false-positive
+> findings.
+>
+> Findings are review candidates, not definitive proof of database design
+> defects. Do not apply schema changes automatically based only on this report.
 
-Laravel DB Inspector 1.x targets PHP 8.4 and Laravel 13. The analysis pipeline now uses typed `AnalysisResult` and `Finding` DTOs across the command, Markdown report, and web UI.
+## Current release
 
-## Supported versions
+- Current development release: `v0.1.0`
+- Stability: experimental
 
-| Version | Supported |
-|---------|-----------|
-| 1.x     | Yes       |
-| < 1.0   | No        |
+## Stability
+
+Laravel DB Inspector is currently in the `0.x` development series.
+
+Public APIs, rule behavior, report structure, and configuration options may
+change between minor `0.x` releases while the analyzer and rule set are being
+validated against real Laravel applications.
 
 ## Requirements
 
@@ -119,12 +132,31 @@ Important points:
 
 ## What it checks
 
+Some checks are deterministic schema observations, while others are heuristic review suggestions. Heuristic findings require application-level validation.
+
 The analyzer currently focuses on these areas:
 
-- Architecture: audit trail, charset/collation consistency, JSON overuse, storage engine inconsistencies, boolean flag overuse
-- Integrity: duplicate row risk, foreign key naming consistency, cascade actions, orphan risk, unique constraint issues
-- Performance: missing indexes, log table indexing, status indexes, NULL ratio, table and database size, auto-increment risk, index cardinality, composite index recommendations, growth risk
-- Structure: data type appropriateness, enum overuse, large text columns, missing soft deletes or timestamps, mixed domain columns, nullable overuse, pivot structure, polymorphic overuse, missing primary keys, repeated common fields, too many columns, wide varchar fields
+- Architecture: inspect audit trail, charset/collation consistency, JSON usage, storage engine consistency, boolean flag overuse
+- Integrity: flag potential duplicate-row risk, foreign key naming inconsistencies, cascade action mismatches, orphan-risk review candidates, unique constraint issues
+- Performance: highlight missing-index review candidates, log-table indexing, status-index opportunities, NULL ratio, table and database size, auto-increment risk, index cardinality, composite-index review candidates, growth-risk review candidates
+- Structure: inspect data type appropriateness, enum overuse, large text columns, missing soft deletes or timestamps, mixed domain columns, nullable overuse, pivot structure, polymorphic overuse, missing primary keys, repeated common fields, too many columns, wide varchar fields
+
+Deterministic capabilities include inspecting the live schema, listing actual indexes, reporting actual storage engines, reporting actual collations, reporting actual table sizes, identifying physically missing primary keys, identifying physically missing indexes where the rule has already established a real relation, and generating console and Markdown reports.
+
+## Current limitations
+
+The analyzer currently operates primarily from the live database schema and database statistics. It does not yet combine findings with:
+
+- Laravel migration intent;
+- Eloquent model relationships;
+- model casts;
+- model `$timestamps` configuration;
+- `SoftDeletes`;
+- polymorphic relation definitions;
+- application query patterns;
+- domain-specific business rules.
+
+Because of that limited context, some checks are heuristic and may require manual review before any schema change is made.
 
 ## Development
 

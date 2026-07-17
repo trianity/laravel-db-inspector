@@ -2,7 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+Current release line: `v0.1.0` experimental. Older entries below are historical.
+
 ## [Unreleased]
+
+## [0.1.0] - 2026-07-17
+
+### Added
+
+- Typed `AnalysisResult`, `Finding`, `TechnicalError`, and analysis context DTOs.
+- Stable rule identifiers for database checks.
+- A shared check contract and deterministic check registry.
+- Dedicated console and Markdown report renderers.
+
+### Changed
+
+- Standardized all database checks to return `Finding` objects.
+- Unified console, Markdown, and web output around the same typed result model.
+- Separated technical execution errors from database design findings.
+- Improved deterministic ordering and reporting of analysis results.
+
+### Fixed
+
+- Prevented nested check payloads from causing console or Markdown rendering errors.
+- Removed array-to-string conversions and mixed issue payload handling.
+
+### Removed
+
+- Removed the legacy `DatabaseInspectionResult` class.
+- Removed renderer-side support for heterogeneous string, array, and `Stringable` issue payloads.
+
+### Breaking Changes
+
+- Custom checks must implement the new `DatabaseCheck` contract.
+- Checks must return `list<Finding>`.
+- Consumers of `DatabaseInspectionResult` must migrate to `AnalysisResult`.
 
 ### Changed
 
@@ -133,5 +167,5 @@ All notable changes to this project will be documented in this file.
 
 - Initial release of orphan risk check.
 
-[Unreleased]: https://github.com/trianity/laravel-db-inspector/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/trianity/laravel-db-inspector/releases/tag/v1.0.0
+[Unreleased]: https://github.com/trianity/laravel-db-inspector/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/trianity/laravel-db-inspector/releases/tag/v0.1.0

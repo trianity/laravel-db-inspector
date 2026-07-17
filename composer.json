@@ -1,6 +1,6 @@
 {
     "name": "trianity/laravel-db-inspector",
-    "description": "A production-safe database schema and design inspector for Laravel.",
+    "description": "An experimental database schema and design inspector for Laravel.",
     "type": "library",
     "license": "MIT",
     "homepage": "https://github.com/trianity/laravel-db-inspector",

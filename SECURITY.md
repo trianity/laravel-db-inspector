@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Until the first stable release, security fixes are provided only for the latest development version.
+During the `0.x` development series, security fixes are provided only for the latest development release.
 
 ## Reporting a vulnerability
 
