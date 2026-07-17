@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Architecture;
+namespace Trianity\LaravelDbInspector\Checks\Architecture;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class StorageEngineCheck extends BaseCheck
 {

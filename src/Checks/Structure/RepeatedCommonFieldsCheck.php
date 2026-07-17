@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Structure;
+namespace Trianity\LaravelDbInspector\Checks\Structure;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class RepeatedCommonFieldsCheck extends BaseCheck
 {
@@ -32,7 +32,7 @@ class RepeatedCommonFieldsCheck extends BaseCheck
 
                 if (in_array($field, $columns)) {
 
-                    $issues["repeated_common_field"][] =
+                    $issues['repeated_common_field'][] =
                         "\033[0;30;43m[REPEATED FIELD]\033[0m '$table' table has common field '$field'";
                 }
             }

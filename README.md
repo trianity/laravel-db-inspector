@@ -1,17 +1,17 @@
-# DBStan - Laravel Database Schema Analysis & Insights  
+# Laravel DB Inspector - Database Schema Analysis & Insights
 
-[![Latest Version](https://img.shields.io/packagist/v/itpathsolutions/dbstan.svg?style=flat-square)](https://packagist.org/packages/itpathsolutions/dbstan)
+[![Latest Version](https://img.shields.io/packagist/v/trianity/laravel-db-inspector.svg?style=flat-square)](https://packagist.org/packages/trianity/laravel-db-inspector)
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square)]()
-[![Total Downloads](https://img.shields.io/packagist/dt/itpathsolutions/dbstan.svg?style=flat-square)](https://packagist.org/packages/itpathsolutions/dbstan)
+[![Total Downloads](https://img.shields.io/packagist/dt/trianity/laravel-db-inspector.svg?style=flat-square)](https://packagist.org/packages/trianity/laravel-db-inspector)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.1-blue?style=flat-square)]()
 [![Laravel](https://img.shields.io/badge/laravel-9%20to%2013-red?style=flat-square)]()
 
-The **DBStan** package provides detailed analysis and insights into your database schema for Laravel applications. It helps identify structural issues, missing indexes, normalization problems, nullable column risks, foreign key inconsistencies, and performance concerns.
+The **Laravel DB Inspector** package provides detailed analysis and insights into your database schema for Laravel applications. It helps identify structural issues, missing indexes, normalization problems, nullable column risks, foreign key inconsistencies, and performance concerns.
 
 It is an essential tool for **debugging, optimizing, reviewing, and maintaining a healthy database architecture** in Laravel projects.
 
-Current release: **v1.0.8** with **MySQL and PostgreSQL** support.
+Current baseline: redesigned package foundation with **MySQL and PostgreSQL** support.
 
 ---
 
@@ -19,7 +19,7 @@ Current release: **v1.0.8** with **MySQL and PostgreSQL** support.
 
 Before using this package, ensure your database connection is properly configured in your Laravel application.
 
-If the database is not configured correctly, DBStan will not be able to analyze your schema.
+If the database is not configured correctly, Laravel DB Inspector will not be able to analyze your schema.
 
 Make sure your `.env` file contains valid database credentials.
 
@@ -113,10 +113,10 @@ Do **NOT** expose this tool publicly in production without proper access restric
 To install the package, run:
 
 ```bash
-composer require itpathsolutions/dbstan
+composer require trianity/laravel-db-inspector
 ```
 
-<button type="button" onclick="navigator.clipboard.writeText('composer require itpathsolutions/dbstan')">Copy Install Command</button>
+<button type="button" onclick="navigator.clipboard.writeText('composer require trianity/laravel-db-inspector')">Copy Install Command</button>
 
 ---
 
@@ -127,15 +127,15 @@ composer require itpathsolutions/dbstan
 After installing the package, you may publish the configuration file using:
 
 ```bash
-php artisan vendor:publish --tag=dbstan-config
+php artisan vendor:publish --tag=laravel-db-inspector-config
 ```
 
-<button type="button" onclick="navigator.clipboard.writeText('php artisan vendor:publish --tag=dbstan-config')">Copy Vendor Publish Command</button>
+<button type="button" onclick="navigator.clipboard.writeText('php artisan vendor:publish --tag=laravel-db-inspector-config')">Copy Vendor Publish Command</button>
 
 This will create the configuration file at:
 
 ```bash
-config/dbstan.php
+config/laravel-db-inspector.php
 ```
 
 You can customize thresholds like:
@@ -158,13 +158,13 @@ You can customize thresholds like:
 To analyze your database schema:
 
 ```bash
-php artisan dbstan:analyze
+php artisan db-inspector:analyze
 ```
 
 or
 
 ```bash
-http://127.0.0.1:8000/dbstan
+http://127.0.0.1:8000/db-inspector
 ```
 
 Both options scan your entire database and display categorized results in the browser or terminal.
@@ -173,7 +173,7 @@ Both options scan your entire database and display categorized results in the br
 
 ## **Output Categories**
 
-DBStan organizes its findings into four main categories:
+Laravel DB Inspector organizes its findings into four main categories:
 
 ### 1. **Structure Issues**
 - Tables with too many columns
@@ -254,13 +254,13 @@ php artisan config:clear
 
 ### 1. What does this package do?
 
-DBStan analyzes your Laravel database schema and detects structural, normalization, and performance issues.
+Laravel DB Inspector analyzes your Laravel database schema and detects structural, normalization, and performance issues.
 
 ---
 
 ### 2. Does it modify my database?
 
-No. DBStan is completely read-only.  
+No. Laravel DB Inspector is completely read-only.
 It does **NOT** make any changes to your database.
 
 ---
@@ -295,7 +295,7 @@ For major changes, please open an issue first to discuss what you would like to 
 
 ## **Security Vulnerabilities**
 
-If you discover a security vulnerability within DBStan, please send an email to [enquiry@itpathsolutions.com](mailto:enquiry@itpathsolutions.com).  
+If you discover a security vulnerability within Laravel DB Inspector, please send an email to [enquiry@itpathsolutions.com](mailto:enquiry@itpathsolutions.com).
 
 All security vulnerabilities will be promptly addressed.
 
@@ -305,4 +305,4 @@ For more details, see our [Security Policy](SECURITY.md).
 
 ## **License**
 
-DBStan is open-sourced software licensed under the [MIT license](LICENSE).
+Laravel DB Inspector is open-sourced software licensed under the [MIT license](LICENSE).

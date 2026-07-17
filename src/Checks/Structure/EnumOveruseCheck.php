@@ -1,9 +1,9 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Structure;
+namespace Trianity\LaravelDbInspector\Checks\Structure;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
 use Illuminate\Support\Facades\DB;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class EnumOveruseCheck extends BaseCheck
 {
@@ -60,16 +60,16 @@ class EnumOveruseCheck extends BaseCheck
                 ) {
                     $enumColumns[] = [
                         'field' => $field,
-                        'type'  => $type,
-                        'raw'   => $column
+                        'type' => $type,
+                        'raw' => $column,
                     ];
                 }
             }
 
             // Rule 1: Too many ENUM columns
             if (count($enumColumns) > 2) {
-                $issues["enum_overuse"][] =
-                    "\033[0;30;43m[ENUM OVERUSE]\033[0m '{$table}' table has multiple ENUM columns (" . count($enumColumns) . ")";
+                $issues['enum_overuse'][] =
+                    "\033[0;30;43m[ENUM OVERUSE]\033[0m '{$table}' table has multiple ENUM columns (".count($enumColumns).')';
             }
 
             // Rule 2: ENUM with too many values
@@ -89,19 +89,19 @@ class EnumOveruseCheck extends BaseCheck
                 // ✅ PostgreSQL ENUM values extraction
                 elseif ($driver === 'pgsql') {
 
-                    $enumValues = DB::select("
+                    $enumValues = DB::select('
                         SELECT e.enumlabel
                         FROM pg_type t
                         JOIN pg_enum e ON t.oid = e.enumtypid
                         JOIN pg_namespace n ON n.oid = t.typnamespace
                         WHERE t.typname = ?
-                    ", [$raw->udt_name ?? '']);
+                    ', [$raw->udt_name ?? '']);
 
                     $valuesCount = count($enumValues);
                 }
 
                 if ($valuesCount > 5) {
-                    $issues["enum_overuse"][] =
+                    $issues['enum_overuse'][] =
                         "\033[0;30;43m[ENUM SIZE]\033[0m '{$table}.{$field}' has many ENUM values ({$valuesCount}) — consider lookup table";
                 }
             }

@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 ### Added
 - Copy buttons for commonly used README commands.
-- Detailed comments for all `config/dbstan.php` configuration variables.
+- Detailed comments for all `config/laravel-db-inspector.php` configuration variables.
 - Storage engine consistency check (non-InnoDB and mixed-engine detection).
 - Charset and collation consistency check (utf8 vs utf8mb4 mismatch and mixed collations).
 - Auto-increment risk check for near-limit and high-growth overflow scenarios.

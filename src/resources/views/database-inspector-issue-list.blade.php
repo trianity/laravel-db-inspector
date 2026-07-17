@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>DBStan Report</title>
+    <title>Laravel DB Inspector Report</title>
 
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -51,7 +51,7 @@
 
 <div class="container">
 
-    <h2 class="mb-4 fw-bold">⚡ DBStan Analysis</h2>
+    <h2 class="mb-4 fw-bold">Database Inspector Analysis</h2>
 
     @if(!empty($preflightError))
         <div class="alert alert-danger shadow-sm">

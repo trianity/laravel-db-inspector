@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Structure;
+namespace Trianity\LaravelDbInspector\Checks\Structure;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class DataTypeAppropriatenessCheck extends BaseCheck
 {
@@ -47,8 +47,8 @@ class DataTypeAppropriatenessCheck extends BaseCheck
                         str_starts_with($name, 'is_') ||
                         str_starts_with($name, 'has_')
                     ) &&
-                    !str_contains($type, 'tinyint(1)') &&
-                    !str_contains($type, 'boolean')
+                    ! str_contains($type, 'tinyint(1)') &&
+                    ! str_contains($type, 'boolean')
                 ) {
                     $issues['datatype_issue'][] =
                         "\033[0;30;43m[DATA TYPE]\033[0m '$table.{$column->Field}' looks boolean but type is '$type'. Consider BOOLEAN/TINYINT(1)";
@@ -57,9 +57,9 @@ class DataTypeAppropriatenessCheck extends BaseCheck
                 // *_at fields are usually temporal columns.
                 if (
                     str_ends_with($name, '_at') &&
-                    !str_contains($type, 'timestamp') &&
-                    !str_contains($type, 'datetime') &&
-                    !str_contains($type, 'date')
+                    ! str_contains($type, 'timestamp') &&
+                    ! str_contains($type, 'datetime') &&
+                    ! str_contains($type, 'date')
                 ) {
                     $issues['datatype_issue'][] =
                         "\033[0;30;43m[DATA TYPE]\033[0m '$table.{$column->Field}' ends with _at but type is '$type'. Consider TIMESTAMP/DATETIME";

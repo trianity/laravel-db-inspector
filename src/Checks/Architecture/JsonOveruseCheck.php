@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Architecture;
+namespace Trianity\LaravelDbInspector\Checks\Architecture;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class JsonOveruseCheck extends BaseCheck
 {
@@ -53,8 +53,8 @@ class JsonOveruseCheck extends BaseCheck
 
             if (count($jsonColumns) > $maxJsonColumns) {
 
-                $issues["json_overuse"][] =
-                    "\033[0;30;43m[WARNING]\033[0m '{$table}' table uses too many JSON columns (" . count($jsonColumns) . ")";
+                $issues['json_overuse'][] =
+                    "\033[0;30;43m[WARNING]\033[0m '{$table}' table uses too many JSON columns (".count($jsonColumns).')';
             }
         }
 

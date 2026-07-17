@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Performance;
+namespace Trianity\LaravelDbInspector\Checks\Performance;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class CompositeIndexRecommendationCheck extends BaseCheck
 {
@@ -22,11 +22,11 @@ class CompositeIndexRecommendationCheck extends BaseCheck
 
         foreach ($schema as $table => $data) {
             $columns = array_map(
-                fn($col) => strtolower((string) ($col->Field ?? '')),
+                fn ($col) => strtolower((string) ($col->Field ?? '')),
                 $data['columns'] ?? []
             );
 
-            if (!in_array('user_id', $columns, true)) {
+            if (! in_array('user_id', $columns, true)) {
                 continue;
             }
 
@@ -66,7 +66,7 @@ class CompositeIndexRecommendationCheck extends BaseCheck
                 }
             }
 
-            if (!$hasComposite) {
+            if (! $hasComposite) {
                 $issues['composite_index_recommendation'][] =
                     "\033[0;30;43m[PERF]\033[0m '$table' often filters by user_id + $statusColumn. Consider adding INDEX(user_id, $statusColumn)";
             }

@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Structure;
+namespace Trianity\LaravelDbInspector\Checks\Structure;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class PrimaryKeyPresenceCheck extends BaseCheck
 {
@@ -18,7 +18,7 @@ class PrimaryKeyPresenceCheck extends BaseCheck
 
     public function run(array $schema): array
     {
-        $issues = [];   
+        $issues = [];
 
         foreach ($schema as $table => $data) {
             $hasPrimary = false;
@@ -30,7 +30,7 @@ class PrimaryKeyPresenceCheck extends BaseCheck
                 }
             }
 
-            if (!$hasPrimary) {
+            if (! $hasPrimary) {
                 $issues['missing_primary_key'][] =
                     "\033[0;37;41m[ERROR]\033[0m '$table' table has no PRIMARY KEY. Add a primary key for integrity and safe updates";
             }

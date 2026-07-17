@@ -1,12 +1,15 @@
 <?php
 
-namespace Itpathsolutions\DBStan;
+declare(strict_types=1);
+
+namespace Trianity\LaravelDbInspector;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Throwable;
+use Trianity\LaravelDbInspector\Contracts\CheckInterface;
 
-class DBStanAnalyzer
+class DatabaseInspector
 {
     protected array $checks = [];
 
@@ -46,6 +49,7 @@ class DBStanAnalyzer
             'environment' => app()->environment(),
         ];
     }
+
     public function getPreflightError(): ?string
     {
         $databaseName = DB::getDatabaseName();
@@ -61,7 +65,7 @@ class DBStanAnalyzer
             return 'Database connection failed.';
         }
 
-        if (!DB::getSchemaBuilder()->hasTable($migrationTableName)) {
+        if (! DB::getSchemaBuilder()->hasTable($migrationTableName)) {
             return 'Run migrations first.';
         }
 
@@ -83,13 +87,15 @@ class DBStanAnalyzer
 
     protected function loadChecks(): void
     {
-        $path = __DIR__ . '/Checks';
+        $path = __DIR__.'/Checks';
 
         foreach (File::allFiles($path) as $file) {
 
             $class = $this->getClassFromFile($file);
 
-            if (!class_exists($class)) continue;
+            if (! class_exists($class)) {
+                continue;
+            }
 
             $reflection = new \ReflectionClass($class);
 
@@ -98,7 +104,7 @@ class DBStanAnalyzer
             }
 
             if (in_array(
-                \Itpathsolutions\DBStan\Contracts\CheckInterface::class,
+                CheckInterface::class,
                 $reflection->getInterfaceNames()
             )) {
                 $this->checks[] = app($class);
@@ -108,10 +114,10 @@ class DBStanAnalyzer
 
     protected function getClassFromFile($file): string
     {
-        $relative = str_replace(__DIR__ . DIRECTORY_SEPARATOR, '', $file->getRealPath());
+        $relative = str_replace(__DIR__.DIRECTORY_SEPARATOR, '', $file->getRealPath());
         $relative = str_replace(['.php', DIRECTORY_SEPARATOR], ['', '\\'], $relative);
 
-        return __NAMESPACE__ . '\\' . $relative;
+        return __NAMESPACE__.'\\'.$relative;
     }
 
     public function analyze(): array
@@ -139,7 +145,7 @@ class DBStanAnalyzer
             $category = $check->category();
             $issues = array_filter($check->run($schema));
 
-            if (!empty($issues)) {
+            if (! empty($issues)) {
                 $grouped[$category] = array_merge($grouped[$category], $issues);
             }
         }
@@ -155,7 +161,7 @@ class DBStanAnalyzer
         if ($driver === 'mysql') {
 
             $tables = DB::select('SHOW TABLES');
-            $key = 'Tables_in_' . DB::getDatabaseName();
+            $key = 'Tables_in_'.DB::getDatabaseName();
 
             foreach ($tables as $tableObj) {
 
@@ -164,7 +170,7 @@ class DBStanAnalyzer
                 $columnsRaw = DB::select("SHOW FULL COLUMNS FROM `$table`");
                 $indexes = DB::select("SHOW INDEX FROM `$table`");
 
-                $columns = array_map(fn($col) => (object)[
+                $columns = array_map(fn ($col) => (object) [
                     'name' => $col->Field,
                     'type' => strtolower($col->Type),
                 ], $columnsRaw);
@@ -187,19 +193,19 @@ class DBStanAnalyzer
 
                 $table = $tableObj->tablename;
 
-                $columnsRaw = DB::select("
+                $columnsRaw = DB::select('
                     SELECT column_name, data_type
                     FROM information_schema.columns
                     WHERE table_name = ?
-                ", [$table]);
+                ', [$table]);
 
-                $indexes = DB::select("
+                $indexes = DB::select('
                     SELECT indexname, indexdef
                     FROM pg_indexes
                     WHERE tablename = ?
-                ", [$table]);
+                ', [$table]);
 
-                $columns = array_map(fn($col) => (object)[
+                $columns = array_map(fn ($col) => (object) [
                     'name' => $col->column_name,
                     'type' => strtolower($col->data_type),
                 ], $columnsRaw);

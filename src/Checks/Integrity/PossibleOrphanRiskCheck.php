@@ -1,9 +1,9 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Integrity;
+namespace Trianity\LaravelDbInspector\Checks\Integrity;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
 use Illuminate\Support\Facades\DB;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class PossibleOrphanRiskCheck extends BaseCheck
 {
@@ -31,12 +31,12 @@ class PossibleOrphanRiskCheck extends BaseCheck
         // ✅ Fetch FK metadata (DB-specific)
         if ($driver === 'mysql') {
 
-            $foreignKeys = DB::select("
+            $foreignKeys = DB::select('
                 SELECT TABLE_NAME, COLUMN_NAME
                 FROM information_schema.KEY_COLUMN_USAGE
                 WHERE TABLE_SCHEMA = ?
                 AND REFERENCED_TABLE_NAME IS NOT NULL
-            ", [$database]);
+            ', [$database]);
 
         } elseif ($driver === 'pgsql') {
 
@@ -91,27 +91,27 @@ class PossibleOrphanRiskCheck extends BaseCheck
                     $isNullable = false;
                 }
 
-                if (!str_ends_with($field, '_id')) {
+                if (! str_ends_with($field, '_id')) {
                     continue;
                 }
 
                 $hasFkConstraint = isset($fkMap[$table][$field]);
 
                 // Case 1: No FK constraint
-                if (!$hasFkConstraint) {
-                    $issues["orphan_missing_constraint"][] =
+                if (! $hasFkConstraint) {
+                    $issues['orphan_missing_constraint'][] =
                         "\033[0;30;43m[ORPHAN RISK]\033[0m '{$table}.{$field}' column has no foreign key constraint";
                 }
 
                 // Case 2: Nullable FK
                 if ($hasFkConstraint && $isNullable) {
-                    $issues["orphan_nullable_fk"][] =
+                    $issues['orphan_nullable_fk'][] =
                         "\033[0;37;41m[DATA RISK]\033[0m '{$table}.{$field}' column is nullable foreign key — may allow logical orphans";
                 }
 
                 // Case 3: Worst case
-                if (!$hasFkConstraint && $isNullable) {
-                    $issues["orphan_high_risk"][] =
+                if (! $hasFkConstraint && $isNullable) {
+                    $issues['orphan_high_risk'][] =
                         "\033[0;37;41m[HIGH RISK]\033[0m '{$table}.{$field}' column is nullable and has no FK constraint";
                 }
             }

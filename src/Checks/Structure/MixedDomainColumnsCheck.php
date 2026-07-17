@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Structure;
+namespace Trianity\LaravelDbInspector\Checks\Structure;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class MixedDomainColumnsCheck extends BaseCheck
 {
@@ -48,7 +48,7 @@ class MixedDomainColumnsCheck extends BaseCheck
 
                 if ($this->isMixedDomain($field, $type)) {
 
-                    $issues["mixed_domain"][] =
+                    $issues['mixed_domain'][] =
                         "\033[0;37;45m[DOMAIN MIX]\033[0m '{$table}.{$field}' column mixes different types of data";
                 }
             }

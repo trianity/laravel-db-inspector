@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Architecture;
+namespace Trianity\LaravelDbInspector\Checks\Structure;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class PolymorphicOveruseCheck extends BaseCheck
 {
@@ -18,7 +18,7 @@ class PolymorphicOveruseCheck extends BaseCheck
 
     // Add comment to explain the purpose of this check
     // This check identifies tables that use polymorphic relations (i.e., pairs of columns like "xxx_type" and "xxx_id") and checks if they have appropriate composite indexes. Polymorphic relations can lead to performance issues if not indexed properly, especially when filtering by the related type and ID. Additionally, this check flags tables that have multiple polymorphic relations, which can be a sign of complex and potentially problematic database design. By ensuring that polymorphic relations are indexed and not overused, this check helps promote better database performance and design practices.
-    
+
     public function run(array $schema): array
     {
         $issues = [];
@@ -26,7 +26,7 @@ class PolymorphicOveruseCheck extends BaseCheck
         foreach ($schema as $table => $data) {
 
             $fields = array_map(
-                fn($col) => strtolower($col->Field),
+                fn ($col) => strtolower($col->Field),
                 $data['columns'] ?? []
             );
 
@@ -48,8 +48,8 @@ class PolymorphicOveruseCheck extends BaseCheck
                             in_array($field, $indexes) &&
                             in_array($relatedId, $indexes);
 
-                        if (!$hasIndex) {
-                            $issues["polymorphic_index"][] =
+                        if (! $hasIndex) {
+                            $issues['polymorphic_index'][] =
                                 "\033[0;33;44m[PERF]\033[0m '$table' table has unindexed polymorphic relation ($field, $relatedId)";
                         }
                     }
@@ -58,8 +58,8 @@ class PolymorphicOveruseCheck extends BaseCheck
 
             // Overuse warning
             if (count($polymorphicPairs) > 1) {
-                $issues["polymorphic_overuse"][] =
-                    "\033[0;37;41m[ARCH RISK]\033[0m '$table' table uses multiple polymorphic relations (" . count($polymorphicPairs) . ")";
+                $issues['polymorphic_overuse'][] =
+                    "\033[0;37;41m[ARCH RISK]\033[0m '$table' table uses multiple polymorphic relations (".count($polymorphicPairs).')';
             }
         }
 

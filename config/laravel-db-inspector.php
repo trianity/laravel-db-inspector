@@ -1,6 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 return [
+    'enabled' => env(
+        'DB_INSPECTOR_ENABLED',
+        app()->environment(['local', 'testing'])
+    ),
+
+    'connection' => env('DB_INSPECTOR_CONNECTION'),
+
+    'web' => [
+        'enabled' => env('DB_INSPECTOR_WEB_ENABLED', false),
+
+        'prefix' => env(
+            'DB_INSPECTOR_WEB_PREFIX',
+            'db-inspector'
+        ),
+
+        'middleware' => [
+            'web',
+        ],
+    ],
+
     // Maximum number of columns allowed in a table before flagging it as wide.
     'max_columns' => 25,
 
@@ -51,6 +73,6 @@ return [
         'integrity',
 
         // Architecture-level checks (audit trails, JSON/polymorphic usage patterns).
-        'architecture'
-    ]
+        'architecture',
+    ],
 ];

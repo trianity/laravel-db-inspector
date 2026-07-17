@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Performance;
+namespace Trianity\LaravelDbInspector\Checks\Performance;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class MissingIndexesCheck extends BaseCheck
 {
@@ -64,9 +64,9 @@ class MissingIndexesCheck extends BaseCheck
 
                 if (
                     str_ends_with($field, '_id') &&
-                    !in_array($field, $indexColumns)
+                    ! in_array($field, $indexColumns)
                 ) {
-                    $issues["missing_index"][] =
+                    $issues['missing_index'][] =
                         "\033[0;37;41m[ERROR]\033[0m '{$table}.{$field}' column looks like FK but has no index";
                 }
             }

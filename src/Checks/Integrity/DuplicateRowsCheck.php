@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Integrity;
+namespace Trianity\LaravelDbInspector\Checks\Integrity;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class DuplicateRowsCheck extends BaseCheck
 {
@@ -29,7 +29,7 @@ class DuplicateRowsCheck extends BaseCheck
             $indexes = $data['indexes'] ?? [];
 
             $hasPrimary = false;
-            $hasUnique  = false;
+            $hasUnique = false;
 
             foreach ($indexes as $index) {
 
@@ -60,9 +60,9 @@ class DuplicateRowsCheck extends BaseCheck
                 }
             }
 
-            if (!$hasPrimary && !$hasUnique) {
+            if (! $hasPrimary && ! $hasUnique) {
 
-                $issues["duplicate_rows_risk"][] =
+                $issues['duplicate_rows_risk'][] =
                     "\033[0;30;43m[DATA INTEGRITY]\033[0m '{$table}' table has no PRIMARY or UNIQUE constraint — duplicate rows possible";
             }
         }

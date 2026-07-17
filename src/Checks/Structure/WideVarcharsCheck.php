@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Structure;
+namespace Trianity\LaravelDbInspector\Checks\Structure;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class WideVarcharsCheck extends BaseCheck
 {
@@ -68,7 +68,7 @@ class WideVarcharsCheck extends BaseCheck
 
                 if ($length !== null && $length > $maxLength) {
 
-                    $issues["wide_varchar"][] =
+                    $issues['wide_varchar'][] =
                         "\033[0;30;43m[WARNING]\033[0m '{$table}.{$field}' column is VARCHAR({$length}) exceeds recommended limit ({$maxLength})";
                 }
             }

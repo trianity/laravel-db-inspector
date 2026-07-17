@@ -1,9 +1,9 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Performance;
+namespace Trianity\LaravelDbInspector\Checks\Performance;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
 use Illuminate\Support\Facades\DB;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class NullValueRatioCheck extends BaseCheck
 {
@@ -58,7 +58,7 @@ class NullValueRatioCheck extends BaseCheck
                 }
 
                 // Only check nullable columns
-                if (!$isNullable) {
+                if (! $isNullable) {
                     continue;
                 }
 
@@ -70,7 +70,7 @@ class NullValueRatioCheck extends BaseCheck
                     ")
                     ->first();
 
-                if (!$result || $result->total == 0) {
+                if (! $result || $result->total == 0) {
                     continue;
                 }
 
@@ -81,7 +81,7 @@ class NullValueRatioCheck extends BaseCheck
 
                     $percentage = round($ratio * 100, 2);
 
-                    $issues["high_null_ratio"][] =
+                    $issues['high_null_ratio'][] =
                         "\033[0;30;43m[DATA QUALITY]\033[0m '{$table}.{$field}' column has high NULL ratio ({$percentage}%)";
                 }
             }

@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Structure;
+namespace Trianity\LaravelDbInspector\Checks\Structure;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class MissingSoftDeletesCheck extends BaseCheck
 {
@@ -27,9 +27,9 @@ class MissingSoftDeletesCheck extends BaseCheck
             $columns = array_column($data['columns'] ?? [], 'Field');
 
             if (
-                !in_array('deleted_at', $columns)
+                ! in_array('deleted_at', $columns)
             ) {
-                $issues["missing_soft_deletes"][] =
+                $issues['missing_soft_deletes'][] =
                     "\033[0;30;43m[BEST PRACTICE]\033[0m '$table' table is missing deleted_at column for soft deletes";
             }
         }

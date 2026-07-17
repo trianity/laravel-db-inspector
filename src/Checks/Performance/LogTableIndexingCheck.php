@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Performance;
+namespace Trianity\LaravelDbInspector\Checks\Performance;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class LogTableIndexingCheck extends BaseCheck
 {
@@ -25,7 +25,7 @@ class LogTableIndexingCheck extends BaseCheck
         foreach ($schema as $table => $data) {
 
             // Detect log tables
-            if (!str_contains(strtolower($table), 'log')) {
+            if (! str_contains(strtolower($table), 'log')) {
                 continue;
             }
 
@@ -34,17 +34,17 @@ class LogTableIndexingCheck extends BaseCheck
 
             // Check created_at index
             if (in_array('created_at', $columns) &&
-                !in_array('created_at', $indexColumns)) {
+                ! in_array('created_at', $indexColumns)) {
 
-                $issues["log_indexing"][] =
+                $issues['log_indexing'][] =
                     "\033[0;30;43m[PERFORMANCE]\033[0m '$table.created_at' column should be indexed for faster log queries";
             }
 
             // Check user_id index (if exists)
             if (in_array('user_id', $columns) &&
-                !in_array('user_id', $indexColumns)) {
+                ! in_array('user_id', $indexColumns)) {
 
-                $issues["log_indexing"][] =
+                $issues['log_indexing'][] =
                     "\033[0;30;43m[PERFORMANCE]\033[0m '$table.user_id' column should be indexed in log table";
             }
         }

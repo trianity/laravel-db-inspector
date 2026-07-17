@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Performance;
+namespace Trianity\LaravelDbInspector\Checks\Performance;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class StatusIndexCheck extends BaseCheck
 {
@@ -36,8 +36,8 @@ class StatusIndexCheck extends BaseCheck
                     str_ends_with($columnLower, '_status') ||
                     $columnLower === 'state';
 
-                if ($isStatusColumn && !in_array($column, $indexes)) {
-                    $issues["status_not_indexed"][] =
+                if ($isStatusColumn && ! in_array($column, $indexes)) {
+                    $issues['status_not_indexed'][] =
                         "\033[0;30;43m[PERF]\033[0m '$table.$column' column should be indexed for filtering queries";
                 }
             }

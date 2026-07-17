@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Performance;
+namespace Trianity\LaravelDbInspector\Checks\Performance;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class UnboundedGrowthRiskCheck extends BaseCheck
 {
@@ -37,9 +37,9 @@ class UnboundedGrowthRiskCheck extends BaseCheck
             $tableLower = strtolower($table);
 
             $isGrowthTable = collect($growthPatterns)
-                ->contains(fn($pattern) => str_contains($tableLower, $pattern));
+                ->contains(fn ($pattern) => str_contains($tableLower, $pattern));
 
-            if (!$isGrowthTable) {
+            if (! $isGrowthTable) {
                 continue;
             }
 
@@ -49,9 +49,9 @@ class UnboundedGrowthRiskCheck extends BaseCheck
             // Only warn if created_at exists but not indexed
             if (
                 in_array('created_at', $columns) &&
-                !in_array('created_at', $indexColumns)
+                ! in_array('created_at', $indexColumns)
             ) {
-                $issues["growth_risk"][] =
+                $issues['growth_risk'][] =
                     "\033[0;30;43m[GROWTH RISK]\033[0m '$table.created_at' column should be indexed to support high-growth queries";
             }
         }

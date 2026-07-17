@@ -1,19 +1,21 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Commands;
+declare(strict_types=1);
+
+namespace Trianity\LaravelDbInspector\Commands;
 
 use Illuminate\Console\Command;
+use Trianity\LaravelDbInspector\DatabaseInspector;
 
-use Itpathsolutions\DBStan\DBStanAnalyzer;
-
-class DBStanAnalyze extends Command
+class DatabaseInspectorAnalyzeCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'dbstan:analyze';
+    protected $signature = 'db-inspector:analyze';
+
     /**
      * The console command description.
      *
@@ -26,11 +28,11 @@ class DBStanAnalyze extends Command
      */
     public function handle()
     {
-        $analyzer = new DBStanAnalyzer();
+        $analyzer = new DatabaseInspector;
         $info = $analyzer->getDatabaseInfo();
 
         $this->line('');
-        $this->info('🔍 DBStan Analysis Context');
+        $this->info('Database Inspector Analysis Context');
         $this->line(str_repeat('-', 40));
 
         $this->line("Driver      : {$info['driver']}");
@@ -48,12 +50,13 @@ class DBStanAnalyze extends Command
         if ($preflightError !== null) {
             $this->newLine();
             $this->error($preflightError);
-            $this->line('DBStan analysis was skipped until the above issue is fixed.');
+            $this->line('Database Inspector analysis was skipped until the above issue is fixed.');
+
             return self::FAILURE;
         }
 
         $this->newLine();
-        $this->info('🔍 Starting DBStan database structure analysis...');
+        $this->info('Starting Database Inspector database structure analysis...');
 
         $steps = 12;
         $bar = $this->output->createProgressBar($steps);
@@ -62,9 +65,15 @@ class DBStanAnalyze extends Command
         $bar->start();
         $bar->setMessage('Collecting table metadata...', 'status');
 
-        $bar->advance(1); sleep(1); $bar->setMessage('Analyzing table structures...', 'status');
-        $bar->advance(1); sleep(1); $bar->setMessage('Checking column types & nullability...', 'status');
-        $bar->advance(1); sleep(1); $bar->setMessage('Collecting indexes & constraints...', 'status');
+        $bar->advance(1);
+        sleep(1);
+        $bar->setMessage('Analyzing table structures...', 'status');
+        $bar->advance(1);
+        sleep(1);
+        $bar->setMessage('Checking column types & nullability...', 'status');
+        $bar->advance(1);
+        sleep(1);
+        $bar->setMessage('Collecting indexes & constraints...', 'status');
 
         // Do the actual heavy analysis
         $issues = $analyzer->analyze();
@@ -83,7 +92,8 @@ class DBStanAnalyze extends Command
         $this->newLine(2);
 
         if (empty($issues)) {
-            $this->info(' No major database design issues found!');
+            $this->info('No major database design issues found!');
+
             return;
         }
 
@@ -97,11 +107,11 @@ class DBStanAnalyze extends Command
         }
 
         $count = count($flatIssues);
-        $this->error("  Found $count design issue" . ($count === 1 ? '' : 's') . "!");
+        $this->error("  Found $count design issue".($count === 1 ? '' : 's').'!');
         $this->newLine();
 
         foreach ($flatIssues as $i => $issue) {
-            $this->line(sprintf("  %3d. %s", $i + 1, $issue));
+            $this->line(sprintf('  %3d. %s', $i + 1, $issue));
         }
 
         $this->newLine();

@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Architecture;
+namespace Trianity\LaravelDbInspector\Checks\Architecture;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class CharsetCollationConsistencyCheck extends BaseCheck
 {
@@ -43,7 +43,7 @@ class CharsetCollationConsistencyCheck extends BaseCheck
 
             if (count($columnCollations) > 1) {
                 $issues['collation_inconsistent_table'][] =
-                    "\033[0;30;43m[WARNING]\033[0m '$table' table mixes collations at column level (" . implode(', ', array_keys($columnCollations)) . ')';
+                    "\033[0;30;43m[WARNING]\033[0m '$table' table mixes collations at column level (".implode(', ', array_keys($columnCollations)).')';
             }
         }
 
@@ -55,7 +55,7 @@ class CharsetCollationConsistencyCheck extends BaseCheck
         $distinctCollations = array_values(array_unique(array_values($tableCollations)));
         if (count($distinctCollations) > 1) {
             $issues['collation_mismatch'][] =
-                "\033[0;30;43m[WARNING]\033[0m Multiple table collations detected (" . implode(', ', $distinctCollations) . '). Keep a single collation for predictable comparisons';
+                "\033[0;30;43m[WARNING]\033[0m Multiple table collations detected (".implode(', ', $distinctCollations).'). Keep a single collation for predictable comparisons';
         }
 
         return $issues;

@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Structure;
+namespace Trianity\LaravelDbInspector\Checks\Structure;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class PivotTableStructureCheck extends BaseCheck
 {
@@ -36,7 +36,7 @@ class PivotTableStructureCheck extends BaseCheck
             // Detect FK-like columns
             $fkColumns = array_filter(
                 $columnNames,
-                fn($col) => str_ends_with($col, '_id')
+                fn ($col) => str_ends_with($col, '_id')
             );
 
             // Heuristic: pivot must have exactly 2 FK columns
@@ -51,7 +51,7 @@ class PivotTableStructureCheck extends BaseCheck
 
                 // 1️⃣ ID column check
                 if ($hasId) {
-                    $issues["pivot_structure"][] =
+                    $issues['pivot_structure'][] =
                         "\033[0;30;43m[PIVOT]\033[0m '$table' table should not contain an 'id' column";
                 }
 
@@ -61,9 +61,9 @@ class PivotTableStructureCheck extends BaseCheck
                     ['id']
                 );
 
-                if (!empty($extraColumns)) {
-                    $issues["pivot_structure"][] =
-                       "\033[0;30;43m[PIVOT DESIGN]\033[0m '$table' table looks like pivot but contains extra columns: " .implode(', ', $extraColumns);
+                if (! empty($extraColumns)) {
+                    $issues['pivot_structure'][] =
+                       "\033[0;30;43m[PIVOT DESIGN]\033[0m '$table' table looks like pivot but contains extra columns: ".implode(', ', $extraColumns);
                 }
             }
         }

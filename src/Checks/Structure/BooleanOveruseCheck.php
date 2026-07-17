@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Architecture;
+namespace Trianity\LaravelDbInspector\Checks\Structure;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class BooleanOveruseCheck extends BaseCheck
 {
@@ -18,7 +18,7 @@ class BooleanOveruseCheck extends BaseCheck
 
     // Add comment to explain the purpose of this check
     // This check identifies tables that have more than 4 boolean columns (e.g., tinyint(1) or boolean). Having too many boolean flags in a table can be a sign of poor database design, as it may indicate that the table is trying to represent multiple states or conditions that could be better modeled using an ENUM type or a separate state machine. This check helps encourage better database design practices by flagging potential overuse of boolean columns.
-    
+
     public function run(array $schema): array
     {
         $issues = [];
@@ -39,7 +39,7 @@ class BooleanOveruseCheck extends BaseCheck
             $count = count($booleanColumns);
 
             if ($count > 4) {
-                $issues["boolean_overuse"][] =
+                $issues['boolean_overuse'][] =
                     "\033[0;30;43m[ARCH WARNING]\033[0m '$table' table has many boolean flags ($count). Consider using status ENUM or state machine.";
             }
         }

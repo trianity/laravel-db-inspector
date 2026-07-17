@@ -1,9 +1,9 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Integrity;
+namespace Trianity\LaravelDbInspector\Checks\Integrity;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
 use Illuminate\Support\Facades\DB;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class UniqueConstraintViolationsCheck extends BaseCheck
 {
@@ -31,7 +31,7 @@ class UniqueConstraintViolationsCheck extends BaseCheck
 
             foreach ($uniqueCandidates as $field) {
 
-                if (!in_array($field, $columns)) {
+                if (! in_array($field, $columns)) {
                     continue;
                 }
 
@@ -45,7 +45,7 @@ class UniqueConstraintViolationsCheck extends BaseCheck
 
                 if ($duplicateExists) {
 
-                    $issues["duplicate_values"][] =
+                    $issues['duplicate_values'][] =
                         "\033[0;37;41m[UNIQUE VIOLATION]\033[0m '$table.$field' column has duplicate values";
                 }
             }

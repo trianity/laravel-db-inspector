@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Performance;
+namespace Trianity\LaravelDbInspector\Checks\Performance;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class AutoIncrementRiskCheck extends BaseCheck
 {
@@ -35,7 +35,7 @@ class AutoIncrementRiskCheck extends BaseCheck
 
             foreach ($columns as $column) {
                 $extra = strtolower((string) ($column->Extra ?? ''));
-                if (!str_contains($extra, 'auto_increment')) {
+                if (! str_contains($extra, 'auto_increment')) {
                     continue;
                 }
 
@@ -50,13 +50,13 @@ class AutoIncrementRiskCheck extends BaseCheck
 
                 if ($usageRatio >= $criticalUsageRatio) {
                     $issues['autoincrement_near_limit'][] =
-                        "\033[0;37;41m[ERROR]\033[0m '$table.{$column->Field}' auto_increment is at " . round($usageRatio * 100, 2) . "% of max range. Overflow risk is imminent";
+                        "\033[0;37;41m[ERROR]\033[0m '$table.{$column->Field}' auto_increment is at ".round($usageRatio * 100, 2).'% of max range. Overflow risk is imminent';
                 } elseif ($usageRatio >= $warnUsageRatio) {
                     $issues['autoincrement_near_limit'][] =
-                        "\033[0;30;43m[WARNING]\033[0m '$table.{$column->Field}' auto_increment is at " . round($usageRatio * 100, 2) . "% of max range";
+                        "\033[0;30;43m[WARNING]\033[0m '$table.{$column->Field}' auto_increment is at ".round($usageRatio * 100, 2).'% of max range';
                 }
 
-                if ($usageRatio >= 0.4 && $tableRows >= $growthRowsThreshold && str_contains($type, 'int') && !str_contains($type, 'bigint')) {
+                if ($usageRatio >= 0.4 && $tableRows >= $growthRowsThreshold && str_contains($type, 'int') && ! str_contains($type, 'bigint')) {
                     $issues['autoincrement_growth_risk'][] =
                         "\033[0;30;43m[GROWTH RISK]\033[0m '$table.{$column->Field}' uses INT with large row count (~$tableRows). Consider BIGINT before future overflow";
                 }

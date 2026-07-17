@@ -1,16 +1,17 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Http\Controllers;
+declare(strict_types=1);
+
+namespace Trianity\LaravelDbInspector\Http\Controllers;
 
 use Illuminate\Routing\Controller;
-use Illuminate\Http\Request;
-use Itpathsolutions\DBStan\DBStanAnalyzer;
+use Trianity\LaravelDbInspector\DatabaseInspector;
 
-class DBStanController extends Controller
+class DatabaseInspectorController extends Controller
 {
     public function index()
     {
-        $analyzer = new DBStanAnalyzer();
+        $analyzer = new DatabaseInspector;
         $preflightError = $analyzer->getPreflightError();
 
         $groupedIssues = $preflightError === null
@@ -22,6 +23,6 @@ class DBStanController extends Controller
                 'architecture' => [],
             ];
 
-        return view('dbstan::dbstan_issue_list', compact('groupedIssues', 'preflightError'));
+        return view('laravel-db-inspector::database-inspector-issue-list', compact('groupedIssues', 'preflightError'));
     }
 }

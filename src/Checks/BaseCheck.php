@@ -1,8 +1,8 @@
-<?php 
+<?php
 
-namespace Itpathsolutions\DBStan\Checks;
+namespace Trianity\LaravelDbInspector\Checks;
 
-use Itpathsolutions\DBStan\Contracts\CheckInterface;
+use Trianity\LaravelDbInspector\Contracts\CheckInterface;
 
 abstract class BaseCheck implements CheckInterface
 {
@@ -10,6 +10,6 @@ abstract class BaseCheck implements CheckInterface
 
     public function __construct()
     {
-        $this->config = (array) config('dbstan', []);
+        $this->config = (array) config('laravel-db-inspector', []);
     }
 }

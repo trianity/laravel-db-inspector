@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Structure;
+namespace Trianity\LaravelDbInspector\Checks\Structure;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class MissingTimestampsCheck extends BaseCheck
 {
@@ -27,10 +27,10 @@ class MissingTimestampsCheck extends BaseCheck
             $columns = array_column($data['columns'] ?? [], 'Field');
 
             if (
-                !in_array('created_at', $columns) ||
-                !in_array('updated_at', $columns)
+                ! in_array('created_at', $columns) ||
+                ! in_array('updated_at', $columns)
             ) {
-                $issues["missing_timestamps"][] =
+                $issues['missing_timestamps'][] =
                   "\033[0;30;43m[BEST PRACTICE]\033[0m '$table' table is missing created_at/updated_at timestamp columns";
             }
         }

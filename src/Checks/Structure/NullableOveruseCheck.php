@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Structure;
+namespace Trianity\LaravelDbInspector\Checks\Structure;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class NullableOveruseCheck extends BaseCheck
 {
@@ -51,9 +51,9 @@ class NullableOveruseCheck extends BaseCheck
 
                 if (
                     $isNullable &&
-                    !$this->isNullableJustified($field)
+                    ! $this->isNullableJustified($field)
                 ) {
-                    $issues["nullable_overuse"][] =
+                    $issues['nullable_overuse'][] =
                         "\033[0;30;43m[NULLABLE]\033[0m '{$table}.{$field}' column is nullable without clear reason";
                 }
             }

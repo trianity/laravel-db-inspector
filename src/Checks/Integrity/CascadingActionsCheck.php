@@ -1,9 +1,9 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Integrity;
+namespace Trianity\LaravelDbInspector\Checks\Integrity;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
 use Illuminate\Support\Facades\DB;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class CascadingActionsCheck extends BaseCheck
 {
@@ -25,7 +25,7 @@ class CascadingActionsCheck extends BaseCheck
         $database = DB::getDatabaseName();
 
         // Fetch all FK delete rules in one query (avoid N+1)
-        $foreignKeys = DB::select("
+        $foreignKeys = DB::select('
             SELECT 
                 kcu.TABLE_NAME,
                 kcu.COLUMN_NAME,
@@ -35,14 +35,14 @@ class CascadingActionsCheck extends BaseCheck
                 ON rc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
                 AND rc.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA
             WHERE rc.CONSTRAINT_SCHEMA = ?
-        ", [$database]);
+        ', [$database]);
 
         // Convert schema table list for quick lookup
         $validTables = array_keys($schema);
 
         foreach ($foreignKeys as $fk) {
 
-            if (!in_array($fk->TABLE_NAME, $validTables)) {
+            if (! in_array($fk->TABLE_NAME, $validTables)) {
                 continue;
             }
 
@@ -50,7 +50,7 @@ class CascadingActionsCheck extends BaseCheck
 
             if (in_array($deleteRule, ['NO ACTION', 'RESTRICT'])) {
 
-                $issues["cascade_missing"][] =
+                $issues['cascade_missing'][] =
                     "\033[0;37;41m[INTEGRITY]\033[0m '{$fk->TABLE_NAME}.{$fk->COLUMN_NAME}' column has {$deleteRule} on delete — review cascading strategy";
             }
         }

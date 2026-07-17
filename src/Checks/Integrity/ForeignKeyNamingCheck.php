@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Integrity;
+namespace Trianity\LaravelDbInspector\Checks\Integrity;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class ForeignKeyNamingCheck extends BaseCheck
 {
@@ -46,10 +46,10 @@ class ForeignKeyNamingCheck extends BaseCheck
 
                 if (
                     $looksLikeForeignKey &&
-                    !str_ends_with($fieldLower, '_id') &&
+                    ! str_ends_with($fieldLower, '_id') &&
                     $fieldLower !== 'id'
                 ) {
-                    $issues["fk_naming"][] =
+                    $issues['fk_naming'][] =
                         "\033[0;30;43m[NAMING]\033[0m '{$table}.{$field}' column should follow foreign key naming convention: use '{$fieldLower}_id'";
                 }
             }

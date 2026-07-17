@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Architecture;
+namespace Trianity\LaravelDbInspector\Checks\Architecture;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class AuditTrailCheck extends BaseCheck
 {
@@ -19,7 +19,7 @@ class AuditTrailCheck extends BaseCheck
     // Add comment to explain the purpose of this check
     // This check ensures that tables in the database have proper audit trail columns (created_by, updated_by, deleted_by)
     // to support tracking changes and maintaining data integrity over time.
-    
+
     public function run(array $schema): array
     {
         $issues = [];
@@ -44,20 +44,20 @@ class AuditTrailCheck extends BaseCheck
             $hasDeletedAt = in_array('deleted_by', $columns);
 
             // Rule 1: Missing timestamps
-            if (!$hasCreatedAt || !$hasUpdatedAt) {
-                $issues["audit_missing_timestamps"][] =
+            if (! $hasCreatedAt || ! $hasUpdatedAt) {
+                $issues['audit_missing_timestamps'][] =
                     "\033[0;30;43m[AUDIT]\033[0m '$table' table should have created_by and updated_by for audit tracking";
             }
 
             // Rule 2: Soft delete without timestamps
-            if ($hasDeletedAt && (!$hasUpdatedAt || !$hasCreatedAt)) {
-                $issues["audit_inconsistent"][] =
+            if ($hasDeletedAt && (! $hasUpdatedAt || ! $hasCreatedAt)) {
+                $issues['audit_inconsistent'][] =
                     "\033[0;30;43m[AUDIT]\033[0m '$table' table has deleted_by but missing created_by or updated_by";
             }
 
             // Rule 3: Timestamps without soft delete
-            if (($hasCreatedAt || $hasUpdatedAt) && !$hasDeletedAt) {
-                $issues["audit_no_soft_delete"][] =
+            if (($hasCreatedAt || $hasUpdatedAt) && ! $hasDeletedAt) {
+                $issues['audit_no_soft_delete'][] =
                     "\033[0;30;43m[AUDIT]\033[0m '$table' table has created_by/updated_by but missing deleted_by for soft delete";
             }
         }

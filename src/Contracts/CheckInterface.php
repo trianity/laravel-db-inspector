@@ -1,6 +1,6 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Contracts;
+namespace Trianity\LaravelDbInspector\Contracts;
 
 interface CheckInterface
 {

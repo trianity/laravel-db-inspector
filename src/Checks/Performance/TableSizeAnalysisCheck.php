@@ -1,9 +1,9 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Performance;
+namespace Trianity\LaravelDbInspector\Checks\Performance;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
 use Illuminate\Support\Facades\DB;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class TableSizeAnalysisCheck extends BaseCheck
 {
@@ -35,7 +35,7 @@ class TableSizeAnalysisCheck extends BaseCheck
         // ✅ Fetch table sizes based on DB driver
         if ($driver === 'mysql') {
 
-            $tables = DB::select("
+            $tables = DB::select('
                 SELECT 
                     TABLE_NAME,
                     ROUND((DATA_LENGTH)/1024/1024, 2) AS data_mb,
@@ -43,18 +43,18 @@ class TableSizeAnalysisCheck extends BaseCheck
                     ROUND((DATA_LENGTH + INDEX_LENGTH)/1024/1024, 2) AS total_mb
                 FROM information_schema.TABLES
                 WHERE TABLE_SCHEMA = ?
-            ", [$database]);
+            ', [$database]);
 
         } elseif ($driver === 'pgsql') {
 
-            $tables = DB::select("
+            $tables = DB::select('
                 SELECT
                     relname AS table_name,
                     pg_relation_size(relid) / 1024 / 1024 AS data_mb,
                     pg_indexes_size(relid) / 1024 / 1024 AS index_mb,
                     pg_total_relation_size(relid) / 1024 / 1024 AS total_mb
                 FROM pg_catalog.pg_statio_user_tables
-            ");
+            ');
 
         } else {
             return [];
@@ -84,7 +84,7 @@ class TableSizeAnalysisCheck extends BaseCheck
         // ✅ Database size check
         if ($dbTotalMB > $databaseThresholdMB) {
             $issues['database_size_alert'][] =
-                "\033[0;30;43m[SIZE ALERT]\033[0m Database size is " . round($dbTotalMB, 2) . "MB (threshold: {$databaseThresholdMB}MB). Consider archiving, partitioning, and index optimization";
+                "\033[0;30;43m[SIZE ALERT]\033[0m Database size is ".round($dbTotalMB, 2)."MB (threshold: {$databaseThresholdMB}MB). Consider archiving, partitioning, and index optimization";
         }
 
         foreach (array_keys($schema) as $table) {
@@ -92,7 +92,7 @@ class TableSizeAnalysisCheck extends BaseCheck
             $sizeMeta = $sizes[$table] ?? [
                 'data_mb' => 0.0,
                 'index_mb' => 0.0,
-                'total_mb' => 0.0
+                'total_mb' => 0.0,
             ];
 
             $sizeMB = (float) $sizeMeta['total_mb'];
@@ -100,20 +100,20 @@ class TableSizeAnalysisCheck extends BaseCheck
 
             // Large table check
             if ($sizeMB > $tableThresholdMB) {
-                $issues["size_alert"][] =
+                $issues['size_alert'][] =
                     "\033[0;30;43m[SIZE ALERT]\033[0m '{$table}' table is {$sizeMB}MB (data: {$sizeMeta['data_mb']}MB, indexes: {$sizeMeta['index_mb']}MB)";
             }
 
             // Unusual size ratio
             if ($ratio >= $unusualTableRatio) {
                 $issues['unusually_large_table'][] =
-                    "\033[0;30;43m[WARNING]\033[0m '{$table}' uses " . round($ratio * 100, 2) . "% of DB size";
+                    "\033[0;30;43m[WARNING]\033[0m '{$table}' uses ".round($ratio * 100, 2).'% of DB size';
             }
 
             // Dominant table
             if ($ratio >= $dominanceRatio) {
                 $issues['table_storage_dominance'][] =
-                    "\033[0;37;41m[ERROR]\033[0m '{$table}' dominates storage (" . round($ratio * 100, 2) . "%)";
+                    "\033[0;37;41m[ERROR]\033[0m '{$table}' dominates storage (".round($ratio * 100, 2).'%)';
             }
         }
 

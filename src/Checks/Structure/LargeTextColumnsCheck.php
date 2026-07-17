@@ -1,8 +1,8 @@
 <?php
 
-namespace Itpathsolutions\DBStan\Checks\Structure;
+namespace Trianity\LaravelDbInspector\Checks\Structure;
 
-use Itpathsolutions\DBStan\Checks\BaseCheck;
+use Trianity\LaravelDbInspector\Checks\BaseCheck;
 
 class LargeTextColumnsCheck extends BaseCheck
 {
@@ -54,7 +54,7 @@ class LargeTextColumnsCheck extends BaseCheck
                     str_contains($type, 'text') ||   // MySQL: text, longtext, mediumtext
                     $type === 'text'                 // PostgreSQL: text
                 ) {
-                    $issues["large_text"][] =
+                    $issues['large_text'][] =
                         "\033[0;30;43m[PERF RISK]\033[0m '{$table}.{$field}' column is TEXT — consider splitting table or optimizing usage";
                 }
             }
